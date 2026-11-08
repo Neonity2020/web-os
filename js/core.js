@@ -351,6 +351,28 @@
       });
       return '<defs>' + LG(g + 'a', '#ffffff', '#ececf2') + '</defs>' + BG(g + 'a') + dots;
     },
+    phoenix(g) {
+      const gd = (k, c1, c2) => LG(g + k, c1, c2, true);
+      const wing =
+        '<path d="M49 47C39 31 27 23 11 18c5 10 4 18 9 25-6 1-10 6-13 13 13-1 25 2 34 9z" fill="url(#' + g + 'c)"/>' +
+        '<path d="M49 51C38 45 28 45 18 48c8 5 13 11 16 18 7-5 12-8 17-9z" fill="url(#' + g + 'b)" opacity=".9"/>' +
+        '<path d="M48 44C41 33 34 28 24 25c3 7 4 12 8 17 6 0 11 2 16 5z" fill="#ffe9ae" opacity=".8"/>';
+      return '<defs>' +
+        gd('a', '#3b1230', '#100813') + gd('b', '#ffeaa8', '#ff8a25') + gd('c', '#ff9f3c', '#d92d2a') +
+        '<radialGradient id="' + g + 'd"><stop offset="0" stop-color="#ffb347" stop-opacity=".75"/><stop offset="1" stop-color="#ff6b2c" stop-opacity="0"/></radialGradient>' +
+        '</defs>' + BG(g + 'a') +
+        '<circle cx="50" cy="46" r="38" fill="url(#' + g + 'd)"/>' +
+        '<g>' + wing + '<g transform="translate(100 0) scale(-1 1)">' + wing + '</g></g>' +
+        '<path d="M50 65c-10 9-15 16-14 27 8-6 13-13 16-21z" fill="url(#' + g + 'c)"/>' +
+        '<path d="M50 65c10 9 15 16 14 27-8-6-13-13-16-21z" fill="url(#' + g + 'c)"/>' +
+        '<path d="M50 67c-3 10-2 19 0 28 2-9 3-18 0-28z" fill="url(#' + g + 'b)"/>' +
+        '<path d="M50 30c6 0 10 6 10 14 0 12-4 24-10 34-6-10-10-22-10-34 0-8 4-14 10-14z" fill="url(#' + g + 'b)"/>' +
+        '<path d="M50 23c3.4 0 6 3.2 6 7.4S53.4 38 50 38s-6-3.2-6-7.4S46.6 23 50 23z" fill="#fff1c2"/>' +
+        '<path d="M55 29l9 3-9 3z" fill="#ffb347"/>' +
+        '<circle cx="52" cy="28" r="1.5" fill="#4a1a08"/>' +
+        '<circle cx="50" cy="50" r="3.4" fill="#fff8dc" opacity=".9"/>' +
+        '<g fill="#ffe6a8" opacity=".9"><circle cx="22" cy="70" r="1.6"/><circle cx="78" cy="70" r="1.6"/><circle cx="50" cy="14" r="1.4"/></g>';
+    },
     spotlight(g) {
       return '<defs>' + LG(g + 'a', '#6ea8ff', '#2a5bd7') + '</defs>' + BG(g + 'a') +
         '<circle cx="45" cy="45" r="22" fill="none" stroke="#fff" stroke-width="7"/>' +
@@ -447,6 +469,7 @@
     { id: 'appstore', name: 'App Store', en: 'App Store', icon: 'appstore', w: 840, h: 580, menu: [] },
     { id: 'maps', name: '地图', en: 'Maps', icon: 'maps', w: 840, h: 580, menu: [] },
     { id: 'weather', name: '天气', en: 'Weather', icon: 'weather', w: 720, h: 520, menu: [] },
+    { id: 'phoenix', name: '凤凰战机', en: 'Phoenix Strike', icon: 'phoenix', keywords: '游戏 街机 arcade shooter 射击 打飞机', w: 560, h: 720, dock: true, menu: ['文件', '游戏', '窗口', '帮助'] },
     { id: 'trash', name: '废纸篓', en: 'Trash', icon: 'trash', w: 720, h: 500, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] }
   ];
   OS.appById = (id) => OS.apps.find((a) => a.id === id);
@@ -465,7 +488,8 @@
     '  · 按 F3 或 Ctrl + ↑ 进入调度中心\n' +
     '  · 点击菜单栏右上角时间打开通知中心\n' +
     '  · 在桌面空白处点击右键\n' +
-    '  · 在系统设置里更换壁纸与外观\n\n' +
+    '  · 在系统设置里更换壁纸与外观\n' +
+    '  · 在启动台打开「凤凰战机」，来一局街机空战\n\n' +
     '祝你玩得开心。';
   const file = (name, type, opts) => Object.assign({ name: name, type: type, size: '4 KB', modified: '2026年11月7日' }, opts || {});
   const dir = (name, children, opts) => Object.assign({ name: name, type: 'dir', icon: 'folder', children: children || [] }, opts || {});
@@ -481,7 +505,7 @@
     dir('系统', [dir('资源库', [file('系统配置.plist', 'text', { icon: 'file-code' })]), dir('框架', [])]),
     dir('用户', [
       dir('andi', [
-        dir('桌面', []),
+        dir('桌面', [file('凤凰战机.app', 'app', { icon: 'phoenix', app: 'phoenix', size: '18 MB' })]),
         dir('文稿', [
           file('欢迎使用 WebOS.txt', 'text', { icon: 'file-text', content: welcomeText, size: '2 KB' }),
           file('项目计划.md', 'text', { icon: 'file-code', size: '6 KB', content: 'WebOS 项目计划\n\n阶段一 · 视觉体系\n  - 菜单栏、程序坞、毛玻璃\n  - 动态壁纸与深浅外观\n\n阶段二 · 窗口系统\n  - 拖拽、缩放、层级、最小化\n  - 调度中心与聚焦搜索\n\n阶段三 · 内置应用\n  - 访达 / Safari / 终端 / 备忘录\n  - 计算器 / 日历 / 照片 / 音乐 / 设置\n\n阶段四 · 打磨\n  - 交互动效与键盘快捷键\n  - 状态持久化' }),

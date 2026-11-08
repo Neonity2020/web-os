@@ -162,11 +162,23 @@
       { label: '关于 WebOS', action: () => OS.openApp('about') }
     ];
   }
+  function gameMenuItems() {
+    const api = OS.phoenix, cur = api && api.current;
+    return [
+      { label: cur ? '开始新游戏' : '打开凤凰战机', key: 'N', action: () => api ? (cur ? api.newGame() : OS.openApp('phoenix')) : OS.openApp('phoenix') },
+      { sep: true },
+      { label: cur && cur.mode === 'paused' ? '继续游戏' : '暂停游戏', key: 'P', disabled: !cur, action: () => api && api.togglePause() },
+      { label: '释放涅槃之火', key: '空格 / B', disabled: !cur, action: () => api && api.bomb() },
+      { sep: true },
+      { label: '音效：' + (api && api.sound ? '开' : '关'), key: 'M', action: () => api && api.toggleSound() },
+      { label: '操作说明', key: 'H', disabled: !cur, action: () => api && api.help() }
+    ];
+  }
   const MENU_MAP = {
     '文件': fileMenuItems, '编辑': editMenuItems, '显示': viewMenuItems,
     '窗口': windowMenuItems, '帮助': helpMenuItems, '前往': fileMenuItems,
     '邮箱': fileMenuItems, '对话': fileMenuItems, '控制': viewMenuItems,
-    '历史记录': fileMenuItems, '书签': fileMenuItems
+    '历史记录': fileMenuItems, '书签': fileMenuItems, '游戏': gameMenuItems
   };
 
   function renderMenubar() {
@@ -232,7 +244,7 @@
   }
 
   /* ---------------- Dock ---------------- */
-  const DOCK_IDS = ['finder', 'launchpad', 'safari', 'mail', 'messages', 'photos', 'music', 'calendar', 'notes', 'calculator', 'terminal', 'settings', 'trash'];
+  const DOCK_IDS = ['finder', 'launchpad', 'safari', 'mail', 'messages', 'photos', 'music', 'calendar', 'notes', 'calculator', 'phoenix', 'terminal', 'settings', 'trash'];
   function renderDock() {
     const dock = document.getElementById('dock');
     dock.innerHTML = DOCK_IDS.map((id) => {
@@ -290,7 +302,8 @@
     { name: '文稿', icon: 'folder', path: OS.fs.documentsPath },
     { name: '图片', icon: 'folder', path: OS.fs.picturesPath },
     { name: '欢迎使用 WebOS.txt', icon: 'file-text', path: OS.fs.documentsPath.concat('欢迎使用 WebOS.txt') },
-    { name: '项目计划.md', icon: 'file-code', path: OS.fs.documentsPath.concat('项目计划.md') }
+    { name: '项目计划.md', icon: 'file-code', path: OS.fs.documentsPath.concat('项目计划.md') },
+    { name: '凤凰战机.app', icon: 'phoenix', path: OS.fs.desktopPath.concat('凤凰战机.app') }
   ];
   function renderDesktop() {
     const box = document.getElementById('desktop-icons');
@@ -373,7 +386,7 @@
     const box = document.getElementById('spot-results');
     const query = q.trim().toLowerCase();
     spotResults = [];
-    const apps = OS.apps.filter((a) => !a.hidden && (!query || a.name.toLowerCase().includes(query) || a.en.toLowerCase().includes(query) || a.id.includes(query)));
+    const apps = OS.apps.filter((a) => !a.hidden && (!query || a.name.toLowerCase().includes(query) || a.en.toLowerCase().includes(query) || a.id.includes(query) || (a.keywords || '').toLowerCase().includes(query)));
     apps.forEach((a) => spotResults.push({ kind: '应用程序', name: a.name, sub: a.en, icon: a.icon, action: () => OS.openApp(a.id) }));
     if (query) {
       collectFiles(OS.fs.root, [OS.fs.root.name], []).filter((f) => f.node.name.toLowerCase().includes(query))
@@ -458,7 +471,7 @@
     lp.classList.remove('hidden');
     const grid = lp.querySelector('.launchpad-grid'), input = lp.querySelector('.lp-search');
     const draw = (q) => {
-      const list = apps.filter((a) => !q || a.name.toLowerCase().includes(q) || a.en.toLowerCase().includes(q));
+      const list = apps.filter((a) => !q || a.name.toLowerCase().includes(q) || a.en.toLowerCase().includes(q) || (a.keywords || '').toLowerCase().includes(q));
       grid.innerHTML = list.map((a, i) => '<div class="lp-item" data-app="' + a.id + '" style="animation-delay:' + (i * 22) + 'ms">' +
         '<div class="lp-icon">' + OS.icon(a.icon) + '</div><span>' + OS.esc(a.name) + '</span></div>').join('') ||
         '<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.7);font-size:13px;padding:40px">没有找到应用</div>';

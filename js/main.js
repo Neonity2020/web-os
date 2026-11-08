@@ -24,7 +24,12 @@
       b.classList.add('done');
       setTimeout(() => { b.style.display = 'none'; }, 760);
     }, 1150);
-    setTimeout(() => OS.openApp('finder', { path: OS.fs.home.slice() }), 1650);
+    /* 支持 ?app=xxx 直接进入指定应用（例如 ?app=phoenix 打开凤凰战机） */
+    const launch = new URLSearchParams(location.search).get('app');
+    const target = launch && OS.appById(launch) && !OS.appById(launch).hidden ? launch : null;
+    setTimeout(() => target
+      ? OS.openApp(target)
+      : OS.openApp('finder', { path: OS.fs.home.slice() }), 1650);
     setTimeout(() => OS.toast('欢迎使用 WebOS', '⌘/Ctrl + 空格 聚焦搜索 · F3 调度中心', 'about'), 4200);
   }
 
