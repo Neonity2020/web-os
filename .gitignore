@@ -5,3 +5,7 @@
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# TypeScript 构建
+node_modules/
+*.tsbuildinfo
