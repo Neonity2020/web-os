@@ -1,0 +1,254 @@
+/* ============================================================
+   WebOS · 窗口系统与通用窗口控件
+   ============================================================ */
+
+.windows-layer { position: absolute; inset: 0; pointer-events: none; }
+
+.window {
+  position: absolute;
+  display: flex; flex-direction: column;
+  min-width: 300px; min-height: 200px;
+  border-radius: var(--radius-win);
+  background: var(--win-bg);
+  -webkit-backdrop-filter: saturate(170%) blur(36px);
+  backdrop-filter: saturate(170%) blur(36px);
+  border: 1px solid var(--win-border);
+  box-shadow: var(--win-shadow);
+  overflow: hidden;
+  pointer-events: auto;
+  transform-origin: center center;
+  animation: win-open .24s var(--ease) both;
+  transition: box-shadow .2s, opacity .2s, transform .26s var(--ease), left .26s var(--ease), top .26s var(--ease), width .26s var(--ease), height .26s var(--ease);
+}
+@keyframes win-open {
+  from { opacity: 0; transform: scale(.90) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.window.no-anim { animation: none; }
+.window.dragging, .window.resizing { transition: none !important; }
+.window:not(.focused) { box-shadow: 0 12px 36px rgba(0,0,0,.28); }
+.window:not(.focused) .titlebar { opacity: .78; }
+.window.closing { animation: win-close .18s ease forwards; pointer-events: none; }
+@keyframes win-close { to { opacity: 0; transform: scale(.91) translateY(6px); } }
+.window.minimized { opacity: 0; transform: scale(.12) translateY(60vh); pointer-events: none; }
+.window.maximized { border-radius: 10px; }
+
+/* 标题栏 */
+.titlebar {
+  position: relative; flex: none;
+  height: 40px; display: flex; align-items: center;
+  padding: 0 14px; gap: 12px;
+  background: var(--win-titlebar);
+  border-bottom: 1px solid var(--win-sep);
+  cursor: default;
+  transition: opacity .2s;
+}
+.traffic { display: flex; align-items: center; gap: 8px; flex: none; }
+.traffic button {
+  width: 12px; height: 12px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: rgba(0,0,0,.55);
+  border: .5px solid rgba(0,0,0,.12);
+  transition: filter .15s, transform .12s;
+}
+.traffic button:hover { filter: brightness(1.08); }
+.traffic button:active { transform: scale(.9); }
+.traffic .t-close { background: var(--red); }
+.traffic .t-min { background: var(--yellow); }
+.traffic .t-zoom { background: var(--green); }
+.traffic button .glyph { opacity: 0; line-height: 1; }
+.traffic:hover .glyph { opacity: 1; }
+.window:not(.focused) .traffic button { background: rgba(140,140,145,.55); }
+.window:not(.focused) .traffic button .glyph { opacity: 0 !important; }
+.win-title {
+  position: absolute; left: 0; right: 0; text-align: center;
+  font-size: 13px; font-weight: 600; color: var(--win-text);
+  pointer-events: none; opacity: .9;
+}
+.titlebar-tools { margin-left: auto; display: flex; align-items: center; gap: 6px; z-index: 1; }
+.titlebar-tools .tb-btn {
+  width: 26px; height: 24px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--win-muted);
+  transition: background .14s, color .14s;
+}
+.titlebar-tools .tb-btn:hover { background: var(--win-hover); color: var(--win-text); }
+.titlebar-tools .tb-btn svg { width: 15px; height: 15px; }
+.titlebar-tools .tb-btn.active { background: var(--accent-soft); color: var(--accent); }
+
+/* 窗口内容 */
+.win-body { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.win-scroll { overflow: auto; flex: 1; min-height: 0; }
+
+/* 缩放手柄 */
+.rz { position: absolute; z-index: 5; }
+.rz-se { right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; }
+.rz-e { right: 0; top: 40px; bottom: 16px; width: 5px; cursor: ew-resize; }
+.rz-s { left: 16px; right: 16px; bottom: 0; height: 5px; cursor: ns-resize; }
+.rz-w { left: 0; top: 40px; bottom: 16px; width: 5px; cursor: ew-resize; }
+.rz-n { left: 16px; right: 16px; top: 0; height: 4px; cursor: ns-resize; }
+
+/* ---------------- 通用控件 ---------------- */
+.toolbar {
+  flex: none; height: 44px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--win-sep);
+  background: var(--win-fill);
+}
+.tb-icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--win-muted); flex: none;
+  transition: background .14s, color .14s, transform .12s;
+}
+.tb-icon:hover { background: var(--win-hover); color: var(--win-text); }
+.tb-icon:active { transform: scale(.92); }
+.tb-icon.active { background: var(--accent-soft); color: var(--accent); }
+.tb-icon.disabled { opacity: .32; pointer-events: none; }
+.tb-icon svg { width: 16px; height: 16px; }
+.tb-label { font-size: 12.5px; color: var(--win-muted); white-space: nowrap; }
+
+.segmented {
+  display: inline-flex; padding: 2px; border-radius: 7px;
+  background: var(--field-bg); border: 1px solid var(--win-sep);
+  flex: none;
+}
+.segmented button {
+  min-width: 30px; height: 23px; padding: 0 9px;
+  border-radius: 5px; font-size: 11.5px;
+  color: var(--win-muted);
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  transition: background .15s, color .15s;
+}
+.segmented button svg { width: 14px; height: 14px; }
+.segmented button.on { background: var(--win-solid); color: var(--win-text); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+
+.search-field {
+  display: flex; align-items: center; gap: 6px;
+  height: 26px; padding: 0 9px; border-radius: 6px;
+  background: var(--field-bg); border: 1px solid var(--win-sep);
+  color: var(--win-muted); min-width: 0;
+}
+.search-field svg { width: 13px; height: 13px; flex: none; opacity: .7; }
+.search-field input { flex: 1; min-width: 0; font-size: 11.5px; color: var(--win-text); }
+.search-field input::placeholder { color: var(--win-subtle); }
+
+.statusbar {
+  flex: none; height: 26px; padding: 0 14px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border-top: 1px solid var(--win-sep);
+  font-size: 10.5px; color: var(--win-muted);
+  background: var(--win-fill);
+}
+
+.sidebar {
+  width: 190px; flex: none;
+  background: var(--win-sidebar);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  border-right: 1px solid var(--win-sep);
+  padding: 12px 10px; overflow-y: auto;
+}
+.sidebar.sm { width: 156px; }
+.side-title {
+  padding: 8px 9px 5px; font-size: 10.5px; font-weight: 600;
+  color: var(--win-subtle); letter-spacing: .4px;
+}
+.side-item {
+  display: flex; align-items: center; gap: 9px;
+  height: 29px; padding: 0 9px; border-radius: 6px;
+  font-size: 12px; color: var(--win-text);
+  cursor: default; transition: background .14s;
+}
+.side-item:hover { background: var(--win-hover); }
+.side-item.on { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.side-item svg { width: 16px; height: 16px; flex: none; opacity: .85; }
+.side-item .side-count { margin-left: auto; font-size: 10.5px; opacity: .5; }
+.side-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; margin-left: 3px; }
+.side-sep { height: 1px; background: var(--win-sep); margin: 10px 6px; }
+
+.content-pane { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+.pane-head { padding: 18px 22px 10px; flex: none; }
+.pane-head h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.3px; }
+.pane-head p { margin: 4px 0 0; font-size: 11.5px; color: var(--win-muted); }
+
+.card {
+  border-radius: 12px; border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  box-shadow: 0 2px 10px rgba(0,0,0,.07);
+}
+
+/* 开关 / 滑块 / 单选 */
+.switch {
+  width: 38px; height: 22px; border-radius: 20px;
+  background: rgba(140,140,150,.45); position: relative; flex: none;
+  transition: background .22s;
+}
+.switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  transition: transform .22s var(--ease);
+}
+.switch.on { background: var(--accent); }
+.switch.on::after { transform: translateX(16px); }
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 3px; background: var(--field-bg);
+  outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); border: .5px solid rgba(0,0,0,.1);
+}
+.row-setting {
+  display: flex; align-items: center; gap: 14px;
+  padding: 11px 2px; border-bottom: 1px solid var(--win-sep);
+  font-size: 12.5px;
+}
+.row-setting:last-child { border-bottom: 0; }
+.row-setting .rs-label { flex: 1; }
+.row-setting .rs-desc { font-size: 10.5px; color: var(--win-muted); margin-top: 2px; }
+
+/* 空状态 */
+.empty-state {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  color: var(--win-muted); font-size: 12.5px; text-align: center;
+}
+.empty-state svg { width: 56px; height: 56px; opacity: .34; }
+
+/* 模态弹窗（窗口内） */
+.modal-scrim {
+  position: absolute; inset: 0; z-index: 40;
+  background: rgba(0,0,0,.38);
+  display: flex; align-items: center; justify-content: center;
+  animation: spotlight-in .16s ease;
+}
+.modal-card {
+  width: min(360px, 86%); padding: 20px;
+  border-radius: 14px; text-align: center;
+  background: var(--win-solid);
+  border: 1px solid var(--win-border);
+  box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  animation: pop-in .2s var(--ease);
+}
+.modal-card h3 { margin: 0 0 8px; font-size: 14px; }
+.modal-card p { margin: 0 0 18px; font-size: 12px; color: var(--win-muted); line-height: 1.55; }
+.modal-card .modal-actions { display: flex; gap: 8px; justify-content: center; }
+
+/* Mission Control 布局态 */
+.windows-layer.mission .window {
+  transition: transform .34s var(--ease), box-shadow .3s;
+  box-shadow: 0 18px 40px rgba(0,0,0,.42);
+  border-color: rgba(255,255,255,.32);
+}
+.windows-layer.mission .window.mission-target:hover { box-shadow: 0 0 0 3px var(--accent), 0 18px 40px rgba(0,0,0,.42); }
+.windows-layer.mission .window .win-body { pointer-events: none; }
+.mission-label {
+  position: absolute; left: 0; right: 0; bottom: -24px;
+  text-align: center; font-size: 11px; color: #fff;
+  text-shadow: 0 1px 5px rgba(0,0,0,.8);
+  display: none;
+}
+.windows-layer.mission .mission-label { display: block; }

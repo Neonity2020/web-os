@@ -1,0 +1,219 @@
+/* ============================================================
+   WebOS · 基础主题层
+   ============================================================ */
+
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
+
+  --accent: #0a84ff;
+  --accent-soft: rgba(10, 132, 255, .22);
+  --red: #ff5f57;
+  --yellow: #febc2e;
+  --green: #28c840;
+
+  --menu-h: 30px;
+  --dock-h: 78px;
+
+  --glass-blur: saturate(180%) blur(28px);
+
+  --menu-bg: rgba(28, 28, 32, .52);
+  --menu-fg: rgba(255, 255, 255, .94);
+  --menu-border: rgba(255, 255, 255, .10);
+
+  --dropdown-bg: rgba(42, 42, 48, .78);
+  --dropdown-fg: #f5f5f7;
+  --dropdown-muted: rgba(245, 245, 247, .48);
+  --dropdown-hover: var(--accent);
+  --dropdown-sep: rgba(255, 255, 255, .12);
+
+  --dock-bg: rgba(255, 255, 255, .19);
+  --dock-border: rgba(255, 255, 255, .28);
+
+  --win-bg: rgba(38, 38, 42, .93);
+  --win-solid: #26262a;
+  --win-titlebar: rgba(56, 56, 62, .62);
+  --win-border: rgba(255, 255, 255, .13);
+  --win-text: #f2f2f5;
+  --win-muted: rgba(242, 242, 245, .52);
+  --win-subtle: rgba(242, 242, 245, .34);
+  --win-sep: rgba(255, 255, 255, .10);
+  --win-hover: rgba(255, 255, 255, .075);
+  --win-fill: rgba(255, 255, 255, .055);
+  --win-sidebar: rgba(255, 255, 255, .045);
+  --win-shadow: 0 26px 70px rgba(0, 0, 0, .48), 0 3px 14px rgba(0, 0, 0, .30);
+
+  --card-bg: rgba(255, 255, 255, .07);
+  --card-border: rgba(255, 255, 255, .11);
+  --field-bg: rgba(0, 0, 0, .22);
+
+  --radius-win: 12px;
+  --ease: cubic-bezier(.22, .9, .26, 1);
+}
+
+html[data-theme="light"] {
+  --accent: #0071e3;
+  --accent-soft: rgba(0, 113, 227, .16);
+
+  --menu-bg: rgba(255, 255, 255, .48);
+  --menu-fg: rgba(22, 22, 26, .92);
+  --menu-border: rgba(255, 255, 255, .55);
+
+  --dropdown-bg: rgba(250, 250, 252, .84);
+  --dropdown-fg: #1c1c1e;
+  --dropdown-muted: rgba(28, 28, 30, .45);
+  --dropdown-sep: rgba(0, 0, 0, .10);
+
+  --dock-bg: rgba(255, 255, 255, .42);
+  --dock-border: rgba(255, 255, 255, .65);
+
+  --win-bg: rgba(250, 250, 252, .95);
+  --win-solid: #f7f7f9;
+  --win-titlebar: rgba(240, 240, 244, .80);
+  --win-border: rgba(0, 0, 0, .12);
+  --win-text: #1c1c1e;
+  --win-muted: rgba(28, 28, 30, .55);
+  --win-subtle: rgba(28, 28, 30, .36);
+  --win-sep: rgba(0, 0, 0, .09);
+  --win-hover: rgba(0, 0, 0, .055);
+  --win-fill: rgba(0, 0, 0, .045);
+  --win-sidebar: rgba(0, 0, 0, .035);
+  --win-shadow: 0 26px 70px rgba(0, 0, 0, .24), 0 3px 14px rgba(0, 0, 0, .12);
+
+  --card-bg: rgba(255, 255, 255, .62);
+  --card-border: rgba(0, 0, 0, .08);
+  --field-bg: rgba(0, 0, 0, .055);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  width: 100%; height: 100%; margin: 0; padding: 0;
+  overflow: hidden;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--win-text);
+  user-select: none;
+  cursor: default;
+}
+
+button, input, textarea, select { font-family: inherit; color: inherit; }
+button { border: 0; background: none; cursor: pointer; padding: 0; }
+input, textarea { outline: none; border: none; background: none; user-select: text; }
+a { color: var(--accent); text-decoration: none; }
+
+.hidden { display: none !important; }
+.muted { color: var(--win-muted); }
+.subtle { color: var(--win-subtle); }
+.mono { font-family: var(--font-mono); }
+.flex { display: flex; }
+.grow { flex: 1; }
+.center { display: flex; align-items: center; justify-content: center; }
+
+/* ---------- 壁纸 ---------- */
+.wallpaper {
+  position: fixed; inset: 0; z-index: 0;
+  background: #1b1a3a;
+  overflow: hidden;
+  transition: filter .8s ease, opacity .8s ease;
+}
+.wallpaper svg {
+  width: 100%; height: 100%;
+  display: block;
+  object-fit: cover;
+}
+html[data-theme="dark"] .wallpaper { filter: brightness(.98) saturate(1.1); }
+html[data-theme="light"] .wallpaper { filter: brightness(1.05) saturate(1.02); }
+
+.wallpaper-vignette {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 45%, transparent 42%, rgba(0, 0, 0, .22) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, .10) 0%, transparent 24%);
+}
+
+/* ---------- 桌面 ---------- */
+.desktop { position: fixed; inset: 0; z-index: 2; }
+
+/* ---------- 滚动条 ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 160, .38);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 160, .6); background-clip: padding-box; }
+
+/* ---------- 通用小组件 ---------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+  background: var(--win-fill); color: var(--win-muted);
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 28px; padding: 0 12px; border-radius: 7px;
+  font-size: 12px; font-weight: 500;
+  background: var(--win-fill);
+  border: 1px solid var(--win-sep);
+  transition: background .16s, transform .12s;
+}
+.btn:hover { background: var(--win-hover); }
+.btn:active { transform: scale(.96); }
+.btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+.btn.primary:hover { filter: brightness(1.1); }
+.btn.icon { width: 28px; padding: 0; }
+.sep-v { width: 1px; height: 18px; background: var(--win-sep); flex: none; }
+
+/* ---------- 开机画面 ---------- */
+.boot {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #050507;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 30px;
+  transition: opacity .7s ease, visibility .7s;
+}
+.boot.done { opacity: 0; visibility: hidden; pointer-events: none; }
+.boot-logo { width: 78px; height: 92px; color: #f5f5f7; opacity: .96; }
+.boot-logo svg { width: 100%; height: 100%; }
+.boot-progress {
+  width: 180px; height: 4px; border-radius: 4px;
+  background: rgba(255, 255, 255, .18); overflow: hidden;
+}
+.boot-progress span {
+  display: block; height: 100%; width: 0%;
+  border-radius: 4px; background: #f5f5f7;
+  animation: boot-fill 1.05s cubic-bezier(.3, .1, .2, 1) forwards;
+}
+.boot-hint {
+  position: absolute; bottom: 8%;
+  color: rgba(255, 255, 255, .35); font-size: 12px; letter-spacing: 2px;
+}
+@keyframes boot-fill { to { width: 100%; } }
+
+/* ---------- 通用动效 ---------- */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes dock-bounce {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-24px); }
+  55% { transform: translateY(-4px); }
+  72% { transform: translateY(-14px); }
+  100% { transform: translateY(0); }
+}
+@keyframes soft-pulse {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}

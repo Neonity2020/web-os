@@ -1,0 +1,7 @@
+# WorkBuddy 本地元数据（不纳入版本控制）
+.workbuddy/
+*.genie
+
+# 系统文件
+.DS_Store
+Thumbs.db
