@@ -9,7 +9,8 @@
   /* 隐藏工具类应用（不在启动台展示） */
   OS.apps.push(
     { id: 'textview', name: '文本预览', icon: 'file-text', w: 620, h: 480, hidden: true, resizable: true },
-    { id: 'getinfo', name: '简介', icon: 'about', w: 340, h: 380, hidden: true, resizable: false }
+    { id: 'getinfo', name: '简介', icon: 'about', w: 340, h: 380, hidden: true, resizable: false },
+    { id: 'imageview', name: '图片预览', icon: 'photo', w: 760, h: 560, hidden: true, resizable: true }
   );
 
   const TODAY = new Date();
@@ -54,9 +55,12 @@
             '<div class="sep-v"></div>' +
             '<div class="segmented" data-view><button data-v="grid" title="图标视图">' + OS.symbol('grid', 14) + '</button><button data-v="list" title="列表视图">' + OS.symbol('list', 14) + '</button></div>' +
             '<div class="grow"></div>' +
+            '<button class="tb-icon disabled" data-act="open" title="打开所选项目 (⏎ / ⌘O)">' + OS.symbol('external') + '</button>' +
+            '<button class="tb-icon" data-act="import" title="打开本机文件…">' + OS.symbol('share') + '</button>' +
             '<button class="tb-icon" data-act="newfolder" title="新建文件夹">' + OS.symbol('plus') + '</button>' +
             '<button class="tb-icon" data-act="info" title="显示简介">' + OS.symbol('info') + '</button>' +
             '<div class="search-field">' + OS.symbol('search', 13) + '<input placeholder="搜索" class="f-search"></div>' +
+            '<input type="file" class="f-file-input" hidden>' +
           '</div>' +
           '<div class="finder-path"></div>' +
           '<div class="finder-view"></div>' +
@@ -85,6 +89,7 @@
           '<span class="fp-crumb" data-crumb="' + i + '">' + (i ? OS.symbol('chevron-right', 11) : OS.symbol('folder', 11)) + OS.esc(seg) + '</span>'
         ).join('');
         root.querySelectorAll('[data-view] button').forEach((b) => b.classList.toggle('on', b.dataset.v === f.view));
+        root.querySelector('[data-act="open"]').classList.toggle('disabled', !f.selected);
         root.querySelectorAll('.side-item[data-fav]').forEach((b) => {
           const p = FAV[+b.dataset.fav].path;
           b.classList.toggle('on', p.join('/') === f.path.join('/'));
@@ -108,28 +113,67 @@
               '<div class="fl-cell">' + OS.esc(c.size || '—') + '</div>' +
               '<div class="fl-cell">' + (c.type === 'dir' ? '文件夹' : c.type === 'app' ? '应用程序' : c.name.split('.').pop().toUpperCase() + ' 文稿') + '</div></div>').join('') + '</div>';
         }
-        status.textContent = kids.length + ' 个项目 · ' + f.path.join(' / ');
+        updateStatus(kids.length);
       }
       function items() { const n = node(); return (n.children || []).filter((c) => !f.query || c.name.toLowerCase().includes(f.query.toLowerCase())); }
       function selectedNode() { return items().find((c) => c.name === f.selected) || null; }
 
+      function updateStatus(count) {
+        status.textContent = count + ' 个项目 · ' + f.path.join(' / ') +
+          (f.selected ? ' · 已选中「' + f.selected + '」· ⏎ 打开' : '');
+      }
+      /* 选中只切换 class，绝不重建 DOM —— 否则双击的第二下会落在新节点上，
+         浏览器把 dblclick 派发给共同父级，[data-i] 就找不到了。 */
+      function setSelection(name) {
+        f.selected = name;
+        view.querySelectorAll('[data-name]').forEach((el) => el.classList.toggle('on', el.dataset.name === name));
+        root.querySelector('[data-act="open"]').classList.toggle('disabled', !name);
+        updateStatus(items().length);
+      }
+      function openNode(c) {
+        if (!c) return false;
+        if (c.type === 'dir') navigate(f.path.concat(c.name));
+        else OS.openFile(c, f.path.concat(c.name));
+        return true;
+      }
+      /* click(detail===2) 与 dblclick 都可能触发，用短时间窗去重 */
+      let lastOpen = { name: null, at: 0 };
+      function guardedOpen(c) {
+        if (!c) return false;
+        const now = Date.now();
+        if (lastOpen.name === c.name && now - lastOpen.at < 400) return true;
+        lastOpen = { name: c.name, at: now };
+        return openNode(c);
+      }
+      function openSelected() {
+        const c = selectedNode();
+        if (c) return guardedOpen(c);
+        OS.toast('打开', '请先选择一个项目', 'folder');
+        return false;
+      }
+      f.openSelected = openSelected;
+      f.importLocal = () => root.querySelector('.f-file-input').click();
+
       view.addEventListener('click', (e) => {
-        const it = e.target.closest('[data-i]'); if (!it) { f.selected = null; refresh(); return; }
-        f.selected = it.dataset.name; refresh();
+        const it = e.target.closest('[data-i]');
+        if (!it) { setSelection(null); return; }
+        setSelection(it.dataset.name);
+        /* 双击时 click 的 detail 为 2，比 dblclick 更可靠 */
+        if (e.detail >= 2) guardedOpen(items().find((x) => x.name === it.dataset.name));
       });
       view.addEventListener('dblclick', (e) => {
         const it = e.target.closest('[data-i]'); if (!it) return;
-        const c = items().find((x) => x.name === it.dataset.name); if (!c) return;
-        if (c.type === 'dir') navigate(f.path.concat(c.name));
-        else OS.openFile(c, f.path.concat(c.name));
+        guardedOpen(items().find((x) => x.name === it.dataset.name));
       });
       view.addEventListener('contextmenu', (e) => {
         const it = e.target.closest('[data-i]'); if (!it) return;
-        f.selected = it.dataset.name; refresh();
+        setSelection(it.dataset.name);
         const c = selectedNode(); if (!c) return;
         OS.contextMenu(e, [
-          { label: '打开', icon: 'folder', action: () => { if (c.type === 'dir') navigate(f.path.concat(c.name)); else OS.openFile(c); } },
-          { label: '显示简介', icon: 'info', action: () => OS.showInfo(c) },
+          { label: '打开', icon: 'external', action: () => openNode(c) },
+          { label: '在新访达窗口中打开', icon: 'folder', disabled: c.type !== 'dir', action: () => OS.openApp('finder', { newInstance: true, path: f.path.concat(c.name), title: c.name }) },
+          { sep: true },
+          { label: '显示简介', icon: 'info', action: () => OS.showInfo(Object.assign({ path: f.path.join(' / ') }, c)) },
           { sep: true },
           { label: '移到废纸篓', icon: 'trash', action: () => OS.toast('已移到废纸篓', c.name, 'trash') }
         ]);
@@ -144,6 +188,8 @@
       root.querySelector('[data-nav="forward"]').addEventListener('click', () => { if (f.hi < f.hist.length - 1) { f.hi++; f.path = f.hist[f.hi].slice(); refresh(); } });
       root.querySelectorAll('[data-view] button').forEach((b) => b.addEventListener('click', () => { f.view = b.dataset.v; refresh(); }));
       search.addEventListener('input', () => { f.query = search.value; refresh(); });
+      root.querySelector('[data-act="open"]').addEventListener('click', openSelected);
+      root.querySelector('[data-act="import"]').addEventListener('click', () => f.importLocal());
       root.querySelector('[data-act="newfolder"]').addEventListener('click', () => {
         const n = node(); const base = '未命名文件夹'; let name = base, i = 2;
         while ((n.children || []).some((c) => c.name === name)) name = base + ' ' + (i++);
@@ -152,7 +198,47 @@
       });
       root.querySelector('[data-act="info"]').addEventListener('click', () => {
         const c = selectedNode();
-        if (c) OS.showInfo(c); else OS.showInfo({ name: node().name, type: 'dir', icon: 'folder', size: '—' });
+        if (c) OS.showInfo(Object.assign({ path: f.path.join(' / ') }, c));
+        else OS.showInfo({ name: node().name, type: 'dir', icon: 'folder', size: '—', path: f.path.slice(0, -1).join(' / ') });
+      });
+
+      /* ---------------- 从本机打开文件 ---------------- */
+      const TEXT_EXT = ['txt', 'md', 'markdown', 'html', 'htm', 'css', 'js', 'json', 'csv', 'xml', 'log', 'yml', 'yaml', 'py', 'sh', 'svg'];
+      const IMAGE_EXT = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'avif'];
+      const OFFICE_ICON = { docx: 'file-docx', pptx: 'file-pptx', xlsx: 'file-xlsx' };
+      async function importLocal(file) {
+        if (!file) return;
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        const dirNode = node(), path = f.path.concat(file.name);
+        const base = { name: file.name, size: Math.max(1, Math.round(file.size / 1024)) + ' KB', modified: '刚刚', localFile: file };
+        let item;
+        if (OFFICE_ICON[ext]) {
+          item = Object.assign({}, base, { type: 'office', officeType: ext, icon: OFFICE_ICON[ext] });
+        } else if (IMAGE_EXT.includes(ext)) {
+          item = Object.assign({}, base, { type: 'image', icon: 'file-image', src: URL.createObjectURL(file) });
+        } else if (TEXT_EXT.includes(ext)) {
+          let content = '';
+          try { content = await file.text(); } catch (err) { content = '（无法读取此文件的内容）'; }
+          item = Object.assign({}, base, { type: 'text', icon: 'file-text', content: content });
+        } else {
+          item = Object.assign({}, base, { type: 'unknown', icon: 'file-text', note: '此格式在演示版本中暂不支持预览，可查看文件简介。' });
+        }
+        const idx = (dirNode.children || []).findIndex((c) => c.name === file.name);
+        if (idx >= 0) {
+          if (dirNode.children[idx].src) URL.revokeObjectURL(dirNode.children[idx].src);
+          dirNode.children[idx] = item;
+        } else dirNode.children.push(item);
+        f.query = ''; search.value = ''; f.selected = file.name;
+        refresh();
+        OS.toast('已导入本机文件', file.name + ' · ' + dirNode.name, item.icon);
+        OS.openFile(item, path);
+      }
+      const fileInput = root.querySelector('.f-file-input');
+      fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; e.target.value = ''; importLocal(file); });
+      view.addEventListener('dragover', (e) => { e.preventDefault(); });
+      view.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer && e.dataTransfer.files[0]) importLocal(e.dataTransfer.files[0]);
       });
       refresh();
     }
@@ -185,16 +271,26 @@
       return '<div class="text-view">' + html + '</div>';
     }
   };
+  V.imageview = {
+    render(win, opts) {
+      win.setTitle(opts.title || '图片预览');
+      return '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:auto;background:var(--win-bg)">' +
+        '<img src="' + OS.esc(opts.src || '') + '" alt="' + OS.esc(opts.title || '') + '" style="max-width:100%;max-height:100%;object-fit:contain"></div>';
+    }
+  };
   V.getinfo = {
     render(win, opts) {
       const n = opts.node || { name: '项目', type: 'dir', icon: 'folder' };
       win.setTitle(n.name + ' 简介');
+      const kinds = { dir: '文件夹', app: '应用程序', text: '纯文本文稿', image: '图像', audio: '音频', office: 'Office 文稿', disk: '磁盘映像', archive: '归档文件' };
+      const kind = kinds[n.type] || (n.name.split('.').pop() + ' 文稿');
       return '<div class="getinfo"><div class="gi-icon">' + OS.icon(n.icon || 'file-text') + '</div>' +
-        '<h3>' + OS.esc(n.name) + '</h3><div class="muted" style="font-size:11px">' + (n.type === 'dir' ? '文件夹' : '文稿') + '</div>' +
-        '<table><tr><td>种类</td><td>' + (n.type === 'dir' ? '文件夹' : n.type === 'app' ? '应用程序' : '纯文本文稿') + '</td></tr>' +
+        '<h3>' + OS.esc(n.name) + '</h3><div class="muted" style="font-size:11px">' + kind + '</div>' +
+        '<table><tr><td>种类</td><td>' + OS.esc(kind) + '</td></tr>' +
         '<tr><td>大小</td><td>' + OS.esc(n.size || '—') + '</td></tr>' +
         '<tr><td>修改时间</td><td>' + OS.esc(n.modified || '2026年11月7日') + '</td></tr>' +
-        '<tr><td>位置</td><td>/' + OS.esc(n.path || 'Macintosh HD') + '</td></tr></table></div>';
+        '<tr><td>位置</td><td>/' + OS.esc(n.path || 'Macintosh HD') + '</td></tr></table>' +
+        (n.note ? '<p class="muted" style="font-size:11px;line-height:1.6;margin-top:12px">' + OS.esc(n.note) + '</p>' : '') + '</div>';
     }
   };
   OS.showInfo = (node) => OS.openApp('getinfo', { node: node });
@@ -1111,14 +1207,51 @@
   OS.openFile = (node, path) => {
     if (!node) return;
     const p = path || [];
+    const info = (note) => OS.showInfo(Object.assign({ path: p.slice(0, -1).join(' / '), note: note }, node));
     switch (node.type) {
       case 'dir': OS.openApp('finder', { path: p.length ? p : OS.fs.home.slice(), title: node.name }); break;
       case 'app': OS.openApp(node.app); break;
       case 'text': OS.openApp('textview', { title: node.name, content: node.content || '（空文稿）' }); break;
-      case 'image': OS.openApp('photos', { photo: node.photo || 0 }); break;
+      case 'office':
+        /* 本机导入的文件直接交给 Office 在本地解析，示例文稿则按 demo 打开 */
+        if (node.localFile) OS.openApp('office', { file: node.localFile });
+        else OS.openApp('office', { node: node, demo: node.demo });
+        break;
+      case 'image':
+        if (node.src) OS.openApp('imageview', { src: node.src, title: node.name });
+        else OS.openApp('photos', { photo: node.photo || 0 });
+        break;
       case 'audio': OS.openApp('music'); break;
-      case 'disk': OS.showInfo(Object.assign({ path: p.slice(0, -1).join('/') }, node)); break;
-      default: OS.toast('无法打开', node.name + ' · 此演示版本暂不支持该类型', node.icon || 'file-text');
+      case 'disk': info('磁盘映像需要在安装器中挂载，演示版本仅显示简介。'); break;
+      case 'archive': info('压缩包内容预览暂未实现，可查看文件简介。'); break;
+      default: info('此格式在演示版本中暂不支持预览，可查看文件简介。');
     }
   };
+
+  /* 供菜单栏 / 快捷键调用：打开当前访达窗口选中的项目 */
+  OS.openSelected = () => {
+    const win = OS.wm.active();
+    /* 有选中项目就直接打开；否则回到聚焦搜索，让用户挑一份文件 */
+    if (win && win.appId === 'finder' && win._f && win._f.selected && win._f.openSelected) return win._f.openSelected();
+    OS.toggleSpotlight(true);
+    return false;
+  };
+  OS.finderImport = () => {
+    const win = OS.wm.windows.filter((w) => w.appId === 'finder').sort((a, b) => b.z - a.z)[0] || OS.wm.open('finder');
+    if (win._f && win._f.importLocal) win._f.importLocal();
+    else OS.toast('打开本机文件', '请先打开一个访达窗口', 'folder');
+  };
+
+  /* 选中项目后按回车即可打开（⌘O 由桌面外壳统一处理） */
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.defaultPrevented || OS.isCmd(e)) return;
+    if (!(e.target instanceof Element) || !document.body.contains(e.target)) return;
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable) return;
+    const overlays = ['spotlight', 'launchpad', 'lockscreen'];
+    if (overlays.some((id) => { const el = document.getElementById(id); return el && !el.classList.contains('hidden'); })) return;
+    const win = OS.wm.active();
+    if (!win || win.appId !== 'finder' || !win._f || !win._f.openSelected || !win._f.selected) return;
+    e.preventDefault();
+    win._f.openSelected();
+  });
 })();

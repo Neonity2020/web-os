@@ -332,6 +332,37 @@
         '<circle cx="24" cy="20" r="2.6" fill="#ff5f57"/><circle cx="32" cy="20" r="2.6" fill="#febc2e"/><circle cx="40" cy="20" r="2.6" fill="#28c840"/>' +
         '<path d="M36 42l-9 8 9 8M56 42l9 8-9 8M50 38l-6 24" fill="none" stroke="#7ee787" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>';
     },
+    office(g) {
+      return '<defs>' + LG(g + 'a', '#f8faff', '#dfe5f2') + LG(g + 'b', '#7788ff', '#5757d9') + '</defs>' + BG(g + 'a') +
+        '<rect x="17" y="18" width="66" height="64" rx="14" fill="url(#' + g + 'b)"/>' +
+        '<rect x="27" y="29" width="19" height="18" rx="4" fill="#fff" opacity=".96"/>' +
+        '<rect x="54" y="29" width="19" height="18" rx="4" fill="#fff" opacity=".72"/>' +
+        '<rect x="27" y="54" width="19" height="18" rx="4" fill="#fff" opacity=".72"/>' +
+        '<rect x="54" y="54" width="19" height="18" rx="4" fill="#fff" opacity=".96"/>';
+    },
+    'file-docx'(g) {
+      return '<defs>' + LG(g + 'a', '#ffffff', '#e7edf7') + '</defs>' +
+        '<path d="M22 8h40l20 20v62a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z" fill="url(#' + g + 'a)"/>' +
+        '<path d="M62 8v20h20" fill="#bed3ee"/>' +
+        '<path d="M29 47l6 29 8-21 8 21 7-29" fill="none" stroke="#2b6cb0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<rect x="18" y="65" width="18" height="25" rx="3" fill="#2b6cb0"/><text x="27" y="82" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="Arial">W</text>';
+    },
+    'file-pptx'(g) {
+      return '<defs>' + LG(g + 'a', '#ffffff', '#f5e9e3') + '</defs>' +
+        '<path d="M22 8h40l20 20v62a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z" fill="url(#' + g + 'a)"/>' +
+        '<path d="M62 8v20h20" fill="#efc4b2"/>' +
+        '<rect x="29" y="39" width="43" height="31" rx="4" fill="#d76b42"/>' +
+        '<path d="M35 63V46h8a7 7 0 0 1 0 14h-8" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+        '<path d="M54 61l5-11 7 11" fill="none" stroke="#ffd7c7" stroke-width="3"/>';
+    },
+    'file-xlsx'(g) {
+      return '<defs>' + LG(g + 'a', '#ffffff', '#e3f1e9') + '</defs>' +
+        '<path d="M22 8h40l20 20v62a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z" fill="url(#' + g + 'a)"/>' +
+        '<path d="M62 8v20h20" fill="#b8dbc6"/>' +
+        '<rect x="28" y="38" width="45" height="39" rx="4" fill="#217346"/>' +
+        '<path d="M39 48l12 19M51 48L39 67" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+        '<path d="M58 48h9M58 57h9M58 66h9" stroke="#bfe6ce" stroke-width="3" stroke-linecap="round"/>';
+    },
     disk(g) {
       return '<defs>' + LG(g + 'a', '#eef1f6', '#aab2c0') + '</defs>' +
         '<rect x="12" y="22" width="76" height="58" rx="8" fill="url(#' + g + 'a)"/>' +
@@ -462,6 +493,7 @@
     { id: 'music', name: '音乐', en: 'Music', icon: 'music', w: 900, h: 600, dock: true, menu: ['文件', '编辑', '显示', '控制', '窗口', '帮助'] },
     { id: 'calendar', name: '日历', en: 'Calendar', icon: 'calendar', w: 860, h: 580, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'notes', name: '备忘录', en: 'Notes', icon: 'notes', w: 900, h: 580, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
+    { id: 'office', name: '极简 Office', en: 'Mini Office', icon: 'office', keywords: '办公 文档 word docx 演示 powerpoint ppt pptx 表格 excel xls xlsx', w: 1040, h: 680, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'calculator', name: '计算器', en: 'Calculator', icon: 'calculator', w: 300, h: 440, resizable: false, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'terminal', name: '终端', en: 'Terminal', icon: 'terminal', w: 740, h: 460, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'settings', name: '系统设置', en: 'System Settings', icon: 'settings', w: 820, h: 580, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
@@ -508,6 +540,9 @@
         dir('桌面', [file('凤凰战机.app', 'app', { icon: 'phoenix', app: 'phoenix', size: '18 MB' })]),
         dir('文稿', [
           file('欢迎使用 WebOS.txt', 'text', { icon: 'file-text', content: welcomeText, size: '2 KB' }),
+          file('WebOS 产品简报.pptx', 'office', { icon: 'file-pptx', officeType: 'pptx', demo: 'pitch', size: '1.8 MB' }),
+          file('设计原则.docx', 'office', { icon: 'file-docx', officeType: 'docx', demo: 'memo', size: '36 KB' }),
+          file('季度预算.xlsx', 'office', { icon: 'file-xlsx', officeType: 'xlsx', demo: 'budget', size: '24 KB' }),
           file('项目计划.md', 'text', { icon: 'file-code', size: '6 KB', content: 'WebOS 项目计划\n\n阶段一 · 视觉体系\n  - 菜单栏、程序坞、毛玻璃\n  - 动态壁纸与深浅外观\n\n阶段二 · 窗口系统\n  - 拖拽、缩放、层级、最小化\n  - 调度中心与聚焦搜索\n\n阶段三 · 内置应用\n  - 访达 / Safari / 终端 / 备忘录\n  - 计算器 / 日历 / 照片 / 音乐 / 设置\n\n阶段四 · 打磨\n  - 交互动效与键盘快捷键\n  - 状态持久化' }),
           file('设计稿.png', 'image', { icon: 'file-image', photo: 2 }),
           file('index.html', 'text', { icon: 'file-code', size: '3 KB', content: '<!DOCTYPE html>\n<html>\n  <head><title>WebOS</title></head>\n  <body>Hello, world.</body>\n</html>' })

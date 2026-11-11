@@ -109,10 +109,13 @@
     ];
   }
   function fileMenuItems() {
+    const active = OS.wm.active();
+    const sel = active && active.appId === 'finder' && active._f ? active._f.selected : null;
     return [
       { label: '新建窗口', key: '⌘N', action: () => OS.openApp('finder', { newInstance: true, path: OS.fs.home.slice() }) },
       { label: '新建文件夹', key: '⇧⌘N', action: () => OS.openApp('finder') },
-      { label: '打开…', key: '⌘O', action: () => OS.toggleSpotlight(true) },
+      { label: sel ? '打开「' + sel + '」' : '打开…', key: '⌘O', action: () => OS.openSelected() },
+      { label: '打开本机文件…', icon: 'share', action: () => OS.finderImport() },
       { sep: true },
       { label: '关闭窗口', key: '⌘W', action: () => { const w = OS.wm.active(); if (w) OS.wm.close(w); } },
       { label: '显示简介', key: '⌘I', action: () => OS.showInfo({ name: OS.appName(activeAppId), type: 'app', icon: (OS.appById(activeAppId) || {}).icon, size: '12 MB' }) },
@@ -244,7 +247,7 @@
   }
 
   /* ---------------- Dock ---------------- */
-  const DOCK_IDS = ['finder', 'launchpad', 'safari', 'mail', 'messages', 'photos', 'music', 'calendar', 'notes', 'calculator', 'phoenix', 'terminal', 'settings', 'trash'];
+  const DOCK_IDS = ['finder', 'launchpad', 'safari', 'mail', 'messages', 'photos', 'music', 'calendar', 'notes', 'office', 'calculator', 'phoenix', 'terminal', 'settings', 'trash'];
   function renderDock() {
     const dock = document.getElementById('dock');
     dock.innerHTML = DOCK_IDS.map((id) => {
@@ -303,6 +306,7 @@
     { name: '图片', icon: 'folder', path: OS.fs.picturesPath },
     { name: '欢迎使用 WebOS.txt', icon: 'file-text', path: OS.fs.documentsPath.concat('欢迎使用 WebOS.txt') },
     { name: '项目计划.md', icon: 'file-code', path: OS.fs.documentsPath.concat('项目计划.md') },
+    { name: 'WebOS 产品简报.pptx', icon: 'file-pptx', path: OS.fs.documentsPath.concat('WebOS 产品简报.pptx') },
     { name: '凤凰战机.app', icon: 'phoenix', path: OS.fs.desktopPath.concat('凤凰战机.app') }
   ];
   function renderDesktop() {
@@ -558,6 +562,14 @@
 
   /* ---------------- 全局点击与快捷键 ---------------- */
   function bindGlobal() {
+    /* 右键菜单是复用的同一个 DOM，用事件委托执行条目动作 */
+    document.getElementById('context-menu').addEventListener('click', (e) => {
+      const row = e.target.closest('[data-mi]'); if (!row) return;
+      const it = (e.currentTarget._list || [])[+row.dataset.mi];
+      if (!it || it.disabled) return;
+      closeContext();
+      if (it.action) it.action();
+    });
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.dropdown, .mb-item')) closeMenu();
       if (!e.target.closest('#context-menu')) closeContext();
@@ -588,6 +600,7 @@
       if (OS.isCmd(e) && e.key.toLowerCase() === 'w') { e.preventDefault(); const w = OS.wm.active(); if (w) OS.wm.close(w); return; }
       if (OS.isCmd(e) && e.key.toLowerCase() === 'm') { e.preventDefault(); const w = OS.wm.active(); if (w) OS.wm.minimize(w); return; }
       if (OS.isCmd(e) && e.key.toLowerCase() === 'n') { e.preventDefault(); OS.openApp('finder'); return; }
+      if (OS.isCmd(e) && e.key.toLowerCase() === 'o') { e.preventDefault(); OS.openSelected(); return; }
       if (OS.isCmd(e) && e.key === ',') { e.preventDefault(); OS.openApp('settings'); return; }
       if (OS.isCmd(e) && e.ctrlKey && e.key.toLowerCase() === 'q') { e.preventDefault(); OS.lockScreen(); return; }
       if (OS.isCmd(e) && e.key.toLowerCase() === 'h') { e.preventDefault(); const w = OS.wm.active(); if (w) OS.wm.minimize(w); }

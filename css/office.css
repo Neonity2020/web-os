@@ -1,0 +1,283 @@
+/* ============================================================
+   WebOS · Mini Office
+   ============================================================ */
+.office-app {
+  --office-blue: #6979e7;
+  flex: 1; min-height: 0; display: flex; position: relative;
+  background: var(--win-solid); container-type: inline-size;
+}
+.office-sidebar {
+  width: 220px; flex: none; display: flex; flex-direction: column; min-height: 0;
+  padding: 14px 11px 12px; border-right: 1px solid var(--win-sep);
+  background: var(--win-sidebar);
+}
+.office-brand {
+  display: flex; align-items: center; gap: 11px; text-align: left;
+  padding: 4px 8px 18px; color: var(--win-text);
+}
+.office-brand > span:last-child { min-width: 0; }
+.office-brand b { display: block; font-size: 14px; font-weight: 650; letter-spacing: -.2px; }
+.office-brand small { display: block; margin-top: 2px; color: var(--win-subtle); font-size: 9.5px; letter-spacing: .5px; }
+.office-mark {
+  width: 32px; height: 32px; padding: 6px; border-radius: 9px; flex: none;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+  background: linear-gradient(145deg, #8390ff, #5a5ed6);
+  box-shadow: 0 5px 14px rgba(92, 96, 215, .28), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.office-mark i { border-radius: 1.5px; background: #fff; }
+.office-mark i:nth-child(2), .office-mark i:nth-child(3) { opacity: .62; }
+.office-file-list { flex: 1; min-height: 0; overflow-y: auto; }
+.office-group-title {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 9px 7px; color: var(--win-subtle); font-size: 10px; font-weight: 600; letter-spacing: .5px;
+}
+.office-group-title:not(:first-child) { margin-top: 14px; }
+.office-group-title i { font-style: normal; font-weight: 400; }
+.office-file {
+  width: 100%; display: flex; align-items: center; gap: 9px;
+  padding: 8px; border-radius: 8px; text-align: left; color: var(--win-text);
+  transition: background .14s;
+}
+.office-file:hover { background: var(--win-hover); }
+.office-file.on { background: var(--accent-soft); }
+.office-file-icon {
+  width: 30px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  color: var(--kind); background: color-mix(in srgb, var(--kind) 12%, transparent); flex: none;
+}
+.office-file > span:last-child { min-width: 0; }
+.office-file b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; font-weight: 500; }
+.office-file small { display: block; margin-top: 3px; color: var(--win-subtle); font-size: 9px; letter-spacing: .3px; }
+.office-side-foot {
+  display: flex; align-items: center; gap: 7px; padding: 13px 7px 1px;
+  border-top: 1px solid var(--win-sep); color: var(--win-subtle); font-size: 9.5px;
+}
+.office-side-foot i { width: 6px; height: 6px; border-radius: 50%; background: #46a776; box-shadow: 0 0 0 3px rgba(70,167,118,.1); }
+
+.office-main { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.office-toolbar {
+  height: 58px; flex: none; display: flex; align-items: center; gap: 12px;
+  padding: 0 16px 0 20px; border-bottom: 1px solid var(--win-sep); background: var(--win-fill);
+}
+.office-current { min-width: 0; display: flex; align-items: center; gap: 10px; }
+.office-current > div { min-width: 0; }
+.office-current b { display: block; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 600; }
+.office-current small { display: block; margin-top: 3px; color: var(--win-muted); font-size: 9.5px; }
+.office-kind-badge {
+  min-width: 42px; height: 25px; padding: 0 7px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--kind) 12%, transparent); color: var(--kind); font-size: 9px; font-weight: 750; letter-spacing: .4px;
+}
+.office-home-label { font-size: 12px; font-weight: 600; }
+.office-readonly { color: var(--win-subtle); font-size: 9.5px; white-space: nowrap; }
+.office-toolbar .btn { height: 30px; font-size: 11px; }
+.office-content { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+.office-status {
+  height: 25px; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 0 13px; border-top: 1px solid var(--win-sep); background: var(--win-fill);
+  color: var(--win-subtle); font-size: 9px; white-space: nowrap;
+}
+.office-status > span:last-child { letter-spacing: .8px; font-size: 8px; }
+
+/* ---------- 工作台 ---------- */
+.office-home {
+  height: 100%; overflow: auto; padding: 38px 40px 30px;
+  background: radial-gradient(70% 65% at 50% 0%, rgba(113,125,232,.09), transparent 72%);
+}
+.office-home-head { text-align: center; }
+.office-home-kicker { color: var(--office-blue); font-size: 9px; font-weight: 700; letter-spacing: 2.4px; }
+.office-home h1 { margin: 8px 0 7px; font-size: 28px; font-weight: 650; letter-spacing: -1px; }
+.office-home-head p { margin: 0; color: var(--win-muted); font-size: 11.5px; }
+.office-doc-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 32px; }
+.office-doc-card {
+  position: relative; min-width: 0; padding: 10px 10px 15px; border-radius: 13px; text-align: left;
+  background: var(--card-bg); border: 1px solid var(--card-border); color: var(--win-text);
+  box-shadow: 0 4px 16px rgba(0,0,0,.05); transition: transform .2s var(--ease), border-color .2s, box-shadow .2s;
+}
+.office-doc-card:hover { transform: translateY(-4px); border-color: rgba(115,126,226,.45); box-shadow: 0 12px 28px rgba(0,0,0,.13); }
+.office-doc-card h3 { margin: 13px 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 600; }
+.office-doc-card p { margin: 4px 4px 0; color: var(--win-subtle); font-size: 9.5px; }
+.office-card-kind { position: absolute; top: 18px; left: 18px; z-index: 1; font-size: 8px; font-weight: 800; letter-spacing: .5px; }
+.office-card-open { display: flex; align-items: center; gap: 4px; margin: 12px 4px 0; color: var(--office-blue); font-size: 9.5px; opacity: 0; transition: opacity .16s; }
+.office-doc-card:hover .office-card-open { opacity: 1; }
+.mini-ppt, .mini-doc, .mini-sheet {
+  height: 112px; border-radius: 8px; overflow: hidden; position: relative;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+}
+.mini-ppt { padding: 37px 15px 12px; background: linear-gradient(140deg, #29264e, #62528a 62%, #c48588); color: #fff; }
+.mini-ppt::after { content: ""; position: absolute; width: 88px; height: 88px; border-radius: 50%; right: -24px; top: -20px; background: radial-gradient(circle at 35% 35%, #ffc8a2, #8f68bb 55%, transparent 70%); opacity: .6; }
+.mini-ppt i { display: block; width: 22px; height: 2px; margin-bottom: 7px; background: #c9bdf8; }
+.mini-ppt b { display: block; font-size: 16px; letter-spacing: -.5px; }
+.mini-ppt span { display: block; width: 58%; height: 2px; margin-top: 6px; background: rgba(255,255,255,.35); }
+.mini-ppt span:last-child { width: 38%; margin-top: 4px; }
+.mini-doc { padding: 28px 21px 12px; background: #f8f8f6; }
+.mini-doc b { display: block; width: 58%; height: 6px; margin-bottom: 5px; border-radius: 1px; background: #34343a; }
+.mini-doc b:nth-child(2) { width: 42%; }
+.mini-doc span { display: block; height: 2px; margin-top: 7px; background: #d6d6d4; }
+.mini-doc span:nth-last-child(2) { width: 88%; }
+.mini-doc span:last-child { width: 64%; }
+.mini-sheet { display: grid; grid-template-columns: repeat(5,1fr); grid-template-rows: repeat(4,1fr); background: #f8fbf9; }
+.mini-sheet i { border-right: 1px solid #dfe8e2; border-bottom: 1px solid #dfe8e2; }
+.mini-sheet i.head { background: #d9eadf; }
+.office-drop-hint {
+  width: 100%; margin-top: 18px; padding: 13px 16px; display: flex; align-items: center; justify-content: center; gap: 11px;
+  border: 1px dashed var(--win-sep); border-radius: 11px; color: var(--win-text); transition: background .15s, border-color .15s;
+}
+.office-drop-hint:hover { background: var(--win-fill); border-color: var(--office-blue); }
+.office-drop-hint > span { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: var(--office-blue); background: rgba(113,125,232,.1); }
+.office-drop-hint div { text-align: left; }
+.office-drop-hint b { display: block; font-size: 10.5px; font-weight: 550; }
+.office-drop-hint small { display: block; margin-top: 3px; color: var(--win-subtle); font-size: 9px; }
+
+/* ---------- PPTX ---------- */
+.ppt-viewer { height: 100%; display: flex; min-height: 0; background: #202126; }
+.slide-strip { width: 142px; flex: none; overflow-y: auto; padding: 14px 13px; background: #292a30; border-right: 1px solid rgba(255,255,255,.07); }
+.slide-thumb { position: relative; display: block; width: 100%; margin-bottom: 14px; padding: 0 0 0 15px; text-align: left; }
+.slide-thumb > span { position: absolute; left: 0; top: 2px; color: rgba(255,255,255,.45); font-size: 8px; }
+.slide-thumb .ppt-slide { box-shadow: 0 2px 8px rgba(0,0,0,.28); border: 2px solid transparent; }
+.slide-thumb.on .ppt-slide { border-color: #8290ff; }
+.ppt-stage { flex: 1; min-width: 0; overflow: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 25px 15px; }
+.ppt-canvas { width: min(100%, 780px); flex: none; }
+.ppt-slide { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 4px; background: #f7f6f2; color: #25242a; box-shadow: 0 16px 40px rgba(0,0,0,.26); }
+.ppt-kicker { font-size: 8px; font-weight: 650; letter-spacing: 1.7px; opacity: .6; }
+.ppt-slide h2 { margin: 9px 0 0; max-width: 80%; font-size: 28px; line-height: 1.15; font-weight: 650; letter-spacing: -.8px; }
+.ppt-subtitle { margin: 8px 0 0; max-width: 65%; color: #77757c; font-size: 10px; line-height: 1.5; }
+.ppt-page { position: absolute; right: 4%; bottom: 5%; font-size: 8px; color: currentColor; opacity: .35; }
+.ppt-cover, .ppt-closing { background: linear-gradient(125deg, #24223e, #514576 58%, #a87482); color: #fff; }
+.ppt-cover::before, .ppt-closing::before { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 55%, rgba(255,255,255,.06)); }
+.ppt-orb { position: absolute; width: 44%; aspect-ratio: 1; right: -4%; top: -18%; border-radius: 50%; background: radial-gradient(circle at 33% 32%, #f8c5a7 0%, #c18daf 25%, #756096 51%, rgba(67,55,106,.1) 70%); opacity: .85; }
+.ppt-orb::after { content: ""; position: absolute; inset: 17%; border-radius: 50%; border: 1px solid rgba(255,255,255,.2); }
+.ppt-cover-copy { position: absolute; left: 8%; top: 18%; z-index: 1; }
+.ppt-cover-copy h1 { margin: 13px 0 14px; font-size: 40px; line-height: 1.13; font-weight: 580; letter-spacing: -1.7px; }
+.ppt-cover-copy p { max-width: 330px; margin: 0; color: rgba(255,255,255,.65); font-size: 10.5px; line-height: 1.65; }
+.ppt-footer { position: absolute; left: 8%; bottom: 8%; font-size: 7px; letter-spacing: 1.2px; opacity: .48; }
+.ppt-closing { background: linear-gradient(130deg, #27253f, #4b4168 55%, #76617e); }
+.ppt-closing .ppt-orb { width: 36%; right: 8%; top: 25%; opacity: .45; }
+.ppt-closing .ppt-cover-copy { top: 25%; }
+.ppt-column-grid, .ppt-metric-grid { padding: 8% 7%; }
+.ppt-column-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 4%; margin-top: 7%; }
+.ppt-column-grid > div { padding-top: 12px; border-top: 2px solid #dcd9e4; }
+.ppt-column-grid span { color: #7465b3; font-size: 8px; font-weight: 700; }
+.ppt-column-grid h3 { margin: 7px 0 5px; font-size: 12px; font-weight: 650; }
+.ppt-column-grid p { margin: 0; color: #7b7881; font-size: 8px; line-height: 1.6; }
+.ppt-metric-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 4%; margin-top: 6%; }
+.ppt-metric-grid > div { padding: 12% 8%; border-radius: 7px; background: #ece9f1; }
+.ppt-metric-grid b { display: block; color: #655695; font-size: 28px; font-weight: 550; letter-spacing: -1px; }
+.ppt-metric-grid span { display: block; margin-top: 3px; color: #77727e; font-size: 8px; }
+.ppt-note { margin: 7% 7% 0; padding-left: 11px; border-left: 2px solid #9d8cc8; color: #77727e; font-size: 9px; }
+.ppt-external { padding: 8% 8%; background: #fff; }
+.ppt-external .ppt-kicker { color: #9d674f; }
+.ppt-external h2 { max-width: 90%; font-size: 30px; }
+.ppt-bullets { margin-top: 5%; max-width: 84%; }
+.ppt-bullets p { position: relative; margin: 0 0 8px; padding-left: 14px; color: #55515a; font-size: 11px; line-height: 1.5; }
+.ppt-bullets p::before { content: ""; position: absolute; left: 0; top: .6em; width: 4px; height: 4px; border-radius: 50%; background: #c97c5b; }
+.ppt-controls { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; color: rgba(255,255,255,.58); font-size: 9px; }
+.ppt-controls .tb-icon { color: rgba(255,255,255,.62); width: 25px; height: 25px; }
+.ppt-controls .tb-icon:hover { background: rgba(255,255,255,.08); color: #fff; }
+.ppt-controls > i { width: 1px; height: 13px; margin: 0 4px; background: rgba(255,255,255,.12); }
+.ppt-play { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,.7); font-size: 9px; }
+.ppt-slide.is-thumb { border-radius: 2px; }
+.ppt-slide.is-thumb .ppt-kicker { font-size: 3px; letter-spacing: .5px; }
+.ppt-slide.is-thumb .ppt-cover-copy h1 { margin: 4px 0; font-size: 12px; letter-spacing: -.4px; }
+.ppt-slide.is-thumb .ppt-cover-copy p { font-size: 3px; }
+.ppt-slide.is-thumb .ppt-footer, .ppt-slide.is-thumb .ppt-page { font-size: 3px; }
+.ppt-slide.is-thumb h2 { margin-top: 3px; font-size: 9px; }
+.ppt-slide.is-thumb .ppt-subtitle { margin-top: 3px; font-size: 3px; }
+.ppt-slide.is-thumb .ppt-column-grid { margin-top: 4%; }
+.ppt-slide.is-thumb .ppt-column-grid > div { padding-top: 4px; border-top-width: 1px; }
+.ppt-slide.is-thumb .ppt-column-grid span, .ppt-slide.is-thumb .ppt-column-grid p { font-size: 3px; }
+.ppt-slide.is-thumb .ppt-column-grid h3 { margin: 2px 0; font-size: 4px; }
+.ppt-slide.is-thumb .ppt-metric-grid b { font-size: 9px; }
+.ppt-slide.is-thumb .ppt-metric-grid span, .ppt-slide.is-thumb .ppt-note { font-size: 3px; }
+.ppt-slide.is-thumb .ppt-bullets p { margin-bottom: 2px; padding-left: 4px; font-size: 3.5px; }
+.ppt-slide.is-thumb .ppt-bullets p::before { width: 1px; height: 1px; }
+
+/* ---------- DOCX ---------- */
+.docx-canvas { height: 100%; overflow: auto; padding: 28px 28px 50px; background: #e9e9ed; }
+html[data-theme="dark"] .docx-canvas { background: #1e1f23; }
+.docx-paper {
+  width: min(100%, 690px); min-height: 850px; margin: 0 auto; padding: 60px 68px 42px;
+  background: #fdfdfb; color: #2e2d31; box-shadow: 0 5px 24px rgba(0,0,0,.16); user-select: text;
+  font-family: var(--font); font-size: 12px; line-height: 1.9;
+}
+.doc-eyebrow { margin-bottom: 22px; color: #7a70a5; font-size: 8px; font-weight: 700; letter-spacing: 1.6px; }
+.docx-paper .doc-title { margin: 0; font-size: 31px; line-height: 1.32; font-weight: 650; letter-spacing: -1px; }
+.docx-paper .doc-lead { margin: 15px 0 0; color: #77727d; font-size: 13px; }
+.doc-meta-line { margin: 22px 0 36px; padding-bottom: 20px; border-bottom: 1px solid #e7e4e8; color: #9a959e; font-size: 8.5px; }
+.docx-paper h2 { margin: 30px 0 10px; font-size: 16px; line-height: 1.5; font-weight: 650; letter-spacing: -.2px; }
+.docx-paper p { margin: 10px 0; }
+.docx-paper blockquote { margin: 24px 0; padding: 14px 18px; border-left: 3px solid #8f7fba; background: #f4f1f7; color: #5d5668; font-size: 12px; }
+.docx-paper ul { margin: 12px 0; padding-left: 20px; }
+.docx-paper li { padding-left: 3px; margin: 5px 0; }
+.docx-paper li::marker { color: #8b7aad; }
+.doc-table { width: 100%; margin: 20px 0; border-collapse: collapse; font-size: 10px; line-height: 1.6; }
+.doc-table th, .doc-table td { padding: 9px 10px; border: 1px solid #e1dee4; text-align: left; }
+.doc-table th { background: #f2eff5; font-weight: 600; }
+.doc-footer { margin-top: 45px; padding-top: 14px; border-top: 1px solid #ebe8ec; color: #aaa5ad; font-size: 7.5px; letter-spacing: 1.1px; text-align: center; }
+
+/* ---------- XLSX ---------- */
+.xlsx-viewer { height: 100%; min-height: 0; display: flex; flex-direction: column; background: #fff; color: #272a28; }
+.xlsx-formula { height: 34px; flex: none; display: flex; align-items: center; border-bottom: 1px solid #d9dedb; font-size: 10px; }
+.xlsx-namebox { width: 72px; height: 100%; display: flex; align-items: center; justify-content: center; border-right: 1px solid #d9dedb; font-family: var(--font-mono); }
+.xlsx-fx { width: 38px; text-align: center; color: #7b827e; font-family: Georgia,serif; font-style: italic; font-size: 12px; }
+.xlsx-formula-input { flex: 1; min-width: 0; height: 100%; padding: 0 8px; color: #3c423e; font-size: 10px; }
+.xlsx-grid { flex: 1; min-height: 0; overflow: auto; }
+.xlsx-table { border-collapse: separate; border-spacing: 0; table-layout: fixed; min-width: 100%; font-size: 10px; user-select: text; }
+.xlsx-table th, .xlsx-table td { width: 112px; height: 27px; padding: 4px 7px; border-right: 1px solid #dfe3e0; border-bottom: 1px solid #dfe3e0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; }
+.xlsx-table thead th { position: sticky; top: 0; z-index: 3; height: 24px; padding: 0; background: #f3f5f4; color: #646b67; text-align: center; font-size: 9px; }
+.xlsx-table tbody th { position: sticky; left: 0; z-index: 2; width: 38px; min-width: 38px; padding: 0; background: #f3f5f4; color: #777e79; text-align: center; font-size: 9px; font-weight: 400; }
+.xlsx-table .xlsx-corner { left: 0; z-index: 4; width: 38px; min-width: 38px; }
+.xlsx-table td { background: #fff; }
+.xlsx-table td.number { text-align: right; font-variant-numeric: tabular-nums; }
+.xlsx-table td.selected { outline: 2px solid #217346; outline-offset: -2px; background: #f1f8f4; }
+.xlsx-table tbody tr:first-child td { font-weight: 650; color: #1d5b3b; background: #f2f8f4; }
+.xlsx-table tbody tr:nth-child(2) td { font-weight: 600; background: #eaf2ed; }
+.xlsx-table tbody tr:nth-child(8) td { border-top: 1px solid #9db8a8; font-weight: 650; background: #f3f7f5; }
+.xlsx-tabs { height: 32px; flex: none; display: flex; align-items: stretch; gap: 2px; padding: 0 10px; border-top: 1px solid #d9dedb; background: #f5f7f6; }
+.xlsx-tabs button { display: flex; align-items: center; gap: 5px; padding: 0 13px; border-bottom: 2px solid transparent; color: #68706b; font-size: 9.5px; }
+.xlsx-tabs button.on { border-bottom-color: #217346; color: #217346; background: #fff; }
+.xlsx-tabs > span { margin-left: auto; align-self: center; color: #929893; font-size: 8.5px; }
+
+/* ---------- 状态 / 拖放 ---------- */
+.office-loading, .office-error { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+.office-loading h3, .office-error h3 { margin: 16px 0 5px; font-size: 13px; font-weight: 600; }
+.office-loading p, .office-error p { max-width: 360px; margin: 0; color: var(--win-muted); font-size: 10.5px; line-height: 1.6; }
+.office-error > span { color: #d47c5e; }
+.office-error .btn { margin-top: 18px; }
+.office-spinner { width: 30px; height: 30px; border: 2px solid var(--win-sep); border-top-color: var(--office-blue); border-radius: 50%; animation: office-spin .8s linear infinite; }
+@keyframes office-spin { to { transform: rotate(360deg); } }
+.office-app.dragging-file::after {
+  content: "松开以打开文档"; position: absolute; inset: 8px; z-index: 30; display: flex; align-items: center; justify-content: center;
+  border: 2px dashed #8290ff; border-radius: 10px; background: rgba(63,65,100,.82); backdrop-filter: blur(8px);
+  color: #fff; font-size: 17px; font-weight: 600; pointer-events: none;
+}
+
+@container (max-width: 720px) {
+  .office-sidebar { width: 178px; }
+  .office-home { padding: 28px 24px; }
+  .office-doc-cards { gap: 9px; }
+  .mini-ppt, .mini-doc, .mini-sheet { height: 90px; }
+  .office-current b { max-width: 200px; }
+  .slide-strip { width: 118px; padding: 12px 9px; }
+  .docx-paper { padding: 42px 45px 32px; }
+}
+@container (max-width: 530px) {
+  .office-sidebar { width: 62px; padding: 13px 8px; }
+  .office-brand { justify-content: center; padding: 3px 0 17px; }
+  .office-brand > span:last-child, .office-group-title, .office-file > span:last-child, .office-side-foot span { display: none; }
+  .office-file { justify-content: center; padding: 7px 0; }
+  .office-side-foot { justify-content: center; }
+  .office-readonly { display: none; }
+  .office-toolbar { padding: 0 10px 0 13px; gap: 7px; }
+  .office-current b { max-width: 145px; }
+  .office-home { padding: 25px 18px; }
+  .office-home h1 { font-size: 23px; }
+  .office-doc-cards { grid-template-columns: 1fr; }
+  .office-doc-card { display: grid; grid-template-columns: 100px 1fr; column-gap: 12px; }
+  .office-doc-card > div { grid-row: 1 / 5; }
+  .office-doc-card h3 { margin-top: 20px; }
+  .office-card-kind { left: 18px; }
+  .office-card-open { display: none; }
+  .slide-strip { display: none; }
+  .ppt-stage { padding: 15px 12px; }
+  .docx-canvas { padding: 16px 12px 30px; }
+  .docx-paper { padding: 34px 28px; }
+}
