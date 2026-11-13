@@ -247,7 +247,7 @@
   }
 
   /* ---------------- Dock ---------------- */
-  const DOCK_IDS = ['finder', 'launchpad', 'safari', 'mail', 'messages', 'photos', 'music', 'calendar', 'notes', 'office', 'calculator', 'phoenix', 'terminal', 'settings', 'trash'];
+  const DOCK_IDS = ['finder', 'launchpad', 'safari', 'mail', 'messages', 'photos', 'music', 'calendar', 'notes', 'office', 'calculator', 'scicalc', 'phoenix', 'terminal', 'settings', 'trash'];
   function renderDock() {
     const dock = document.getElementById('dock');
     dock.innerHTML = DOCK_IDS.map((id) => {

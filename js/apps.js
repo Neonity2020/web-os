@@ -689,6 +689,8 @@
         const b = root.querySelector('[data-k="' + k + '"]');
         if (b) { b.classList.add('pressed'); setTimeout(() => b.classList.remove('pressed'), 110); }
       });
+      win.setTools('<button class="tb-btn" data-sci title="切换到科学计算器">科学型</button>');
+      win.toolsEl.querySelector('[data-sci]').addEventListener('click', () => OS.openApp('scicalc'));
       show();
     }
   };

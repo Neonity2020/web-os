@@ -236,6 +236,16 @@
         '<rect x="10" y="9" width="80" height="9" rx="3" fill="rgba(0,0,0,.35)"/>' +
         '<text x="86" y="18" text-anchor="end" font-size="10" fill="#fff" font-family="monospace" opacity=".75">0</text>' + keys;
     },
+    scicalc(g) {
+      let keys = '';
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+        const x = 12 + c * 20, y = 33 + r * 19;
+        keys += '<rect x="' + x + '" y="' + y + '" width="16" height="14" rx="3.4" fill="' + (c === 3 ? '#ff9f0a' : 'rgba(255,255,255,.16)') + '"/>';
+      }
+      return '<defs>' + LG(g + 'a', '#6a63f6', '#33306f') + '</defs>' + BG(g + 'a') +
+        '<rect x="12" y="10" width="76" height="17" rx="4" fill="rgba(0,0,0,.32)"/>' +
+        '<text x="82" y="23" text-anchor="end" font-size="12" fill="#fff" opacity=".9">√π</text>' + keys;
+    },
     calendar(g) {
       const d = String(today.getDate());
       return '<defs>' + LG(g + 'a', '#ffffff', '#ececf2') + '</defs>' + BG(g + 'a') +
@@ -495,6 +505,7 @@
     { id: 'notes', name: '备忘录', en: 'Notes', icon: 'notes', w: 900, h: 580, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'office', name: '极简 Office', en: 'Mini Office', icon: 'office', keywords: '办公 文档 word docx 演示 powerpoint ppt pptx 表格 excel xls xlsx', w: 1040, h: 680, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'calculator', name: '计算器', en: 'Calculator', icon: 'calculator', w: 300, h: 440, resizable: false, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
+    { id: 'scicalc', name: '科学计算器', en: 'Scientific Calculator', icon: 'scicalc', keywords: '科学 函数 三角 对数 幂 阶乘 弧度 sci scientific fx', w: 660, h: 540, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'terminal', name: '终端', en: 'Terminal', icon: 'terminal', w: 740, h: 460, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'settings', name: '系统设置', en: 'System Settings', icon: 'settings', w: 820, h: 580, dock: true, menu: ['文件', '编辑', '显示', '窗口', '帮助'] },
     { id: 'about', name: '关于本机', en: 'About This Mac', icon: 'about', w: 560, h: 470, resizable: false, menu: [] },
