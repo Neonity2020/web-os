@@ -47,6 +47,7 @@
         opts: opts, z: ++wm.z
       };
       const el = OS.el('div', 'window focused');
+      if (OS.isMobile()) el.classList.add('m-win');
       el.dataset.id = win.id;
       el.dataset.app = appId;
       el.style.cssText = 'left:' + left + 'px;top:' + top + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + win.z;
@@ -71,7 +72,11 @@
       win.titleEl = el.querySelector('.win-title');
       win.toolsEl = el.querySelector('.titlebar-tools');
       win.setTitle = (t) => { win.titleEl.textContent = t; };
-      win.setTools = (html) => { win.toolsEl.innerHTML = html; return win.toolsEl; };
+      win.setTools = (html) => {
+        win.toolsEl.innerHTML = html;
+        if (OS.isMobile()) wm.mountMobileTools(win);
+        return win.toolsEl;
+      };
       win.rerender = (o) => { win.opts = Object.assign({}, win.opts, o || {}); wm.renderContent(win); };
 
       wm.windows.push(win);
@@ -92,10 +97,28 @@
         win.toolsEl.innerHTML = '';
         win.body.innerHTML = view.render(win, win.opts) || '';
         if (view.mount) view.mount(win, win.opts);
+        if (OS.isMobile()) wm.mountMobileTools(win);
       } catch (err) {
         console.error('[WebOS] render ' + win.appId, err);
         win.body.innerHTML = '<div class="empty-state">应用加载出错：' + OS.esc(err.message) + '</div>';
       }
+    },
+
+    /* 移动端把 .sidebar 收成抽屉，在标题栏统一挂切换按钮（适用于所有带侧栏的应用） */
+    mountMobileTools(win) {
+      const old = win.toolsEl.querySelector('[data-m-side]');
+      if (old) old.remove();
+      if (!win.body.querySelector('.sidebar')) return;
+      const btn = OS.el('button', 'tb-btn m-sidebar-toggle');
+      btn.dataset.mSide = '1';
+      btn.title = '侧栏';
+      btn.setAttribute('aria-label', '打开侧栏');
+      btn.textContent = '☰';
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        win.el.classList.toggle('sidebar-open');
+      });
+      win.toolsEl.appendChild(btn);
     },
 
     close(win) {
@@ -182,6 +205,8 @@
     /* ---------- 调度中心 ---------- */
     mission(on) {
       const target = on == null ? !wm.missionMode : on;
+      /* 全屏窗口下调度中心没有意义，移动端改用程序坞切换应用 */
+      if (target && OS.isMobile()) { OS.toast('调度中心', '移动端请用程序坞切换应用', 'about'); return; }
       wm.missionMode = target;
       const lay = layer();
       lay.classList.toggle('mission', target);
@@ -220,6 +245,20 @@
         }
       }, true);
 
+      /* 移动端抽屉：点遮罩只收起抽屉，必须拦截点击，避免穿透误开文件 */
+      el.addEventListener('click', (e) => {
+        if (!el.classList.contains('sidebar-open')) return;
+        if (e.target.closest('[data-m-side]')) return;
+        if (e.target.closest('.sidebar')) {
+          if (e.target.closest('.side-item, .office-file, [data-sec], [data-folder], [data-album]')) {
+            el.classList.remove('sidebar-open');
+          }
+          return;
+        }
+        e.preventDefault(); e.stopPropagation();
+        el.classList.remove('sidebar-open');
+      }, true);
+
       el.querySelector('.traffic').addEventListener('click', (e) => {
         const b = e.target.closest('button'); if (!b) return;
         e.stopPropagation();
@@ -230,12 +269,14 @@
       });
 
       tb.addEventListener('dblclick', (e) => {
+        if (OS.isMobile()) return;
         if (e.target.closest('button, .titlebar-tools')) return;
         wm.toggleMax(win);
       });
 
       let drag = null;
       tb.addEventListener('pointerdown', (e) => {
+        if (OS.isMobile()) return;
         if (e.button !== 0 || wm.missionMode || win.state.maximized) return;
         if (e.target.closest('button, input, .titlebar-tools, .traffic')) return;
         drag = { x: e.clientX, y: e.clientY, left: el.offsetLeft, top: el.offsetTop };
@@ -254,6 +295,7 @@
 
       OS.$$('.rz', el).forEach((handle) => {
         handle.addEventListener('pointerdown', (e) => {
+          if (OS.isMobile()) return;
           if (e.button !== 0 || wm.missionMode || win.state.maximized) return;
           e.stopPropagation();
           const cls = Array.from(handle.classList).find((c) => c.indexOf('rz-') === 0) || 'rz-se';

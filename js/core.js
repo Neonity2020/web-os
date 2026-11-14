@@ -12,6 +12,12 @@
   OS.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   OS.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* 移动端断点与 css/mobile.css 保持一致；isTouch 用于触摸交互降级 */
+  OS.MOBILE_BREAKPOINT = 760;
+  /* 与 css/mobile.css 的主断点保持完全一致：窄屏，或矮屏且不太宽（横屏手机） */
+  OS.MOBILE_QUERY = '(max-width: 760px), (max-height: 500px) and (max-width: 900px)';
+  OS.isMobile = () => window.matchMedia(OS.MOBILE_QUERY).matches;
+  OS.isTouch = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches || navigator.maxTouchPoints > 0;
   OS.pad = (n) => String(n).padStart(2, '0');
   OS.round = (n, d = 1) => Math.round(n * 10 ** d) / 10 ** d;
   OS.$ = (sel, root) => (root || document).querySelector(sel);

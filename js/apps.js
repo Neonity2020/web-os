@@ -158,10 +158,11 @@
         const it = e.target.closest('[data-i]');
         if (!it) { setSelection(null); return; }
         setSelection(it.dataset.name);
-        /* 双击时 click 的 detail 为 2，比 dblclick 更可靠 */
-        if (e.detail >= 2) guardedOpen(items().find((x) => x.name === it.dataset.name));
+        /* 双击时 click 的 detail 为 2，比 dblclick 更可靠；移动端单击即打开 */
+        if (e.detail >= 2 || OS.isMobile()) guardedOpen(items().find((x) => x.name === it.dataset.name));
       });
       view.addEventListener('dblclick', (e) => {
+        if (OS.isMobile()) return;
         const it = e.target.closest('[data-i]'); if (!it) return;
         guardedOpen(items().find((x) => x.name === it.dataset.name));
       });

@@ -27,10 +27,14 @@
     /* 支持 ?app=xxx 直接进入指定应用（例如 ?app=phoenix 打开凤凰战机） */
     const launch = new URLSearchParams(location.search).get('app');
     const target = launch && OS.appById(launch) && !OS.appById(launch).hidden ? launch : null;
-    setTimeout(() => target
-      ? OS.openApp(target)
-      : OS.openApp('finder', { path: OS.fs.home.slice() }), 1650);
-    setTimeout(() => OS.toast('欢迎使用 WebOS', '⌘/Ctrl + 空格 聚焦搜索 · F3 调度中心', 'about'), 4200);
+    setTimeout(() => {
+      if (target) OS.openApp(target);
+      /* 移动端先展示主屏图标；桌面仅在用户还没打开任何窗口时自动进访达，避免抢焦点 */
+      else if (!OS.isMobile() && !OS.wm.windows.length) OS.openApp('finder', { path: OS.fs.home.slice() });
+    }, 1650);
+    setTimeout(() => OS.toast('欢迎使用 WebOS', OS.isMobile()
+      ? '点按图标打开应用 · 程序坞左右滑动 · 长按唤出菜单'
+      : '⌘/Ctrl + 空格 聚焦搜索 · F3 调度中心', 'about'), 4200);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

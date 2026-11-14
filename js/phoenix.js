@@ -941,7 +941,13 @@
       const me = Ladder.player();
       const rank = Ladder.rankOf(me);
       const keyRow = (k, v) => '<div class="px-krow"><kbd>' + k + '</kbd><span>' + v + '</span></div>';
-      const ladderBtn = '<button class="px-btn ghost" data-act="ranks">天梯榜 <span>L</span></button>';
+      const mobile = OS.isMobile();
+      const ladderBtn = '<button class="px-btn ghost" data-act="ranks">天梯榜 <span>' + (mobile ? '榜单' : 'L') + '</span></button>';
+      /* 移动端没有键盘，操作说明改成触屏手势与标题栏按钮 */
+      const moveRow = keyRow(mobile ? '拖动屏幕' : 'W A S D / ↑ ↓ ← →', '移动战机');
+      const bombRow = keyRow(mobile ? '点按「爆」按钮' : '空格 / B', '涅槃之火 · 清场');
+      const sysRow = keyRow(mobile ? '标题栏按钮' : 'P / N / M / L', '暂停 / 新局 / 音效 / 天梯榜');
+      const startKey = mobile ? 'GO' : '⏎';
       let html = '';
       if (kind === 'ready') {
         html =
@@ -951,10 +957,9 @@
           '<div class="px-sub">PHOENIX STRIKE</div>' +
           '<p class="px-desc">驾驶不死火鸟穿越弹幕，击落敌机与首领，<br>收集道具强化火力，刷新你的最高分。</p>' +
           '<div class="px-keys">' +
-            keyRow('W A S D / ↑ ↓ ← →', '移动战机') + keyRow('自动', '持续开火') +
-            keyRow('空格 / B', '涅槃之火 · 清场') + keyRow('P / N / M / L', '暂停 / 新局 / 音效 / 天梯榜') +
+            moveRow + keyRow('自动', '持续开火') + bombRow + sysRow +
           '</div>' +
-          '<div class="px-btns"><button class="px-btn" data-act="start">开始游戏 <span>⏎</span></button>' +
+          '<div class="px-btns"><button class="px-btn" data-act="start">开始游戏 <span>' + startKey + '</span></button>' +
             ladderBtn + '</div>' +
           '<div class="px-best">历史最高分 <b>' + scoreText(best) + '</b> · ' + OS.esc(me) +
             (rank.rank ? ' · 天梯第 ' + rank.rank + ' 名' : ' · 暂未上榜') + '</div>';
@@ -1017,11 +1022,11 @@
         html =
           '<div class="px-kicker">HOW TO PLAY</div><h1 class="px-title small">操作说明</h1>' +
           '<div class="px-help">' +
-            keyRow('W A S D / 方向键', '移动战机；也可按住鼠标 / 触屏拖动') +
+            keyRow(mobile ? '拖动屏幕' : 'W A S D / 方向键', '移动战机；也可按住鼠标 / 触屏拖动') +
             keyRow('自动开火', '战机持续射击，无需按键') +
-            keyRow('空格 / B', '释放「涅槃之火」，清除全部敌弹并重创敌机') +
-            keyRow('P / N / R', '暂停 / 新游戏 / 重新开始') +
-            keyRow('M / H / L', '音效 / 操作说明 / 天梯榜') +
+            keyRow(mobile ? '点按「爆」按钮' : '空格 / B', '释放「涅槃之火」，清除全部敌弹并重创敌机') +
+            keyRow(mobile ? '标题栏按钮' : 'P / N / R', '暂停 / 新游戏 / 重新开始') +
+            keyRow(mobile ? '标题栏按钮' : 'M / H / L', '音效 / 操作说明 / 天梯榜') +
           '</div>' +
           '<div class="px-legend">' +
             Object.keys(DROP).map((k) => '<span><i style="background:' + DROP[k].c + '">' + DROP[k].label + '</i>' + DROP[k].name + '</span>').join('') +
@@ -1045,12 +1050,14 @@
       t.innerHTML =
         '<button class="tb-btn" data-px="pause" title="暂停 / 继续 (P)">' + OS.symbol(this.mode === 'running' ? 'pause' : 'play', 15) + '</button>' +
         '<button class="tb-btn" data-px="new" title="新游戏 (N)">' + OS.symbol('refresh', 15) + '</button>' +
+        (OS.isMobile() ? '<button class="tb-btn" data-px="bomb" title="涅槃之火">爆</button>' : '') +
         '<button class="tb-btn' + (this.overlayMode === 'ranks' ? ' active' : '') + '" data-px="ranks" title="天梯榜 (L)">' + OS.symbol('trophy', 15) + '</button>' +
         '<button class="tb-btn' + (OS.phoenix.sound ? ' active' : '') + '" data-px="sound" title="音效 (M)">' + OS.symbol('volume', 15) + '</button>';
       t.querySelectorAll('[data-px]').forEach((b) => b.addEventListener('click', () => {
         const a = b.dataset.px;
         if (a === 'pause') this.togglePause();
         else if (a === 'new') this.start();
+        else if (a === 'bomb') this.bomb();
         else if (a === 'ranks') { if (this.overlayMode === 'ranks') this.closeRanks(); else this.openRanks(); }
         else if (a === 'sound') OS.phoenix.toggleSound();
       }));

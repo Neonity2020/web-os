@@ -319,9 +319,16 @@
     box.addEventListener('click', (e) => {
       const it = e.target.closest('[data-i]');
       box.querySelectorAll('.desktop-icon').forEach((x) => x.classList.remove('selected'));
-      if (it) it.classList.add('selected');
+      if (!it) return;
+      it.classList.add('selected');
+      /* 触屏没有可靠的双击：移动端单击即打开 */
+      if (OS.isMobile()) {
+        const d = DESKTOP_ICONS[+it.dataset.i], node = OS.fs.get(d.path);
+        if (node) OS.openFile(node, d.path);
+      }
     });
     box.addEventListener('dblclick', (e) => {
+      if (OS.isMobile()) return;
       const it = e.target.closest('[data-i]'); if (!it) return;
       const d = DESKTOP_ICONS[+it.dataset.i], node = OS.fs.get(d.path);
       if (node) OS.openFile(node, d.path);
@@ -564,6 +571,54 @@
 
   /* ---------------- 全局点击与快捷键 ---------------- */
   function bindGlobal() {
+    /* 触屏长按 → 合成 contextmenu，复用桌面右键菜单逻辑。
+       不依赖浏览器是否原生派发长按菜单；同时抑制长按后的误点击与重复事件。 */
+    let longPress = null, suppressClickUntil = 0, suppressNativeCtxUntil = 0;
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1 ||
+        (e.target.closest && e.target.closest('input, textarea, [contenteditable="true"]'))) {
+        longPress = null; return;
+      }
+      const t = e.touches[0];
+      longPress = { x: t.clientX, y: t.clientY, target: e.target, timer: 0, fired: false };
+      longPress.timer = setTimeout(() => {
+        const lp = longPress;
+        if (!lp) return;
+        lp.fired = true;
+        const el = document.elementFromPoint(lp.x, lp.y) || lp.target;
+        if (el && el.dispatchEvent) {
+          const evt = new MouseEvent('contextmenu', {
+            bubbles: true, cancelable: true, view: window,
+            clientX: lp.x, clientY: lp.y
+          });
+          evt._wbLongPress = true;
+          el.dispatchEvent(evt);
+        }
+        suppressClickUntil = Date.now() + 800;
+        suppressNativeCtxUntil = Date.now() + 900;
+        if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
+      }, 520);
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (!longPress || !e.touches[0]) return;
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - longPress.x) > 10 || Math.abs(t.clientY - longPress.y) > 10) {
+        clearTimeout(longPress.timer); longPress = null;
+      }
+    }, { passive: true });
+    const endTouch = () => { if (longPress) { clearTimeout(longPress.timer); longPress = null; } };
+    document.addEventListener('touchend', endTouch, { passive: true });
+    document.addEventListener('touchcancel', endTouch, { passive: true });
+    document.addEventListener('contextmenu', (e) => {
+      if (e._wbLongPress) return;
+      if (Date.now() < suppressNativeCtxUntil) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    document.addEventListener('click', (e) => {
+      if (Date.now() >= suppressClickUntil) return;
+      if (e.target.closest && e.target.closest('#context-menu, .dropdown, .menubar')) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+    }, true);
+
     /* 右键菜单是复用的同一个 DOM，用事件委托执行条目动作 */
     document.getElementById('context-menu').addEventListener('click', (e) => {
       const row = e.target.closest('[data-mi]'); if (!row) return;
