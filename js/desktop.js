@@ -174,7 +174,9 @@
       { label: '释放涅槃之火', key: '空格 / B', disabled: !cur, action: () => api && api.bomb() },
       { sep: true },
       { label: '音效：' + (api && api.sound ? '开' : '关'), key: 'M', action: () => api && api.toggleSound() },
-      { label: '操作说明', key: 'H', disabled: !cur, action: () => api && api.help() }
+      { label: '操作说明', key: 'H', disabled: !cur, action: () => api && api.help() },
+      { sep: true },
+      { label: '天梯榜…', key: 'L', action: () => api && api.leaderboard() }
     ];
   }
   const MENU_MAP = {

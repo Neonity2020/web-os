@@ -391,3 +391,80 @@ html[data-theme="light"] .term-accent { color: #8a4bd1; }
 .px-legend i { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 4px; font-style: normal; font-weight: 800; font-size: 10px; color: #1a0f20; }
 .px-foot { flex: none; height: 30px; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0 8px; font-size: 10px; color: rgba(245, 232, 220, .5); background: #0b0b18; border-top: 1px solid rgba(255, 150, 80, .14); white-space: nowrap; overflow: hidden; }
 .px-foot i { font-style: normal; opacity: .35; }
+
+/* ---------------- 凤凰战机 · 天梯榜 ---------------- */
+.px-panel.ranks { max-width: 430px; }
+.px-rank-note { margin: 6px 0 0; font-size: 10px; color: rgba(245, 232, 220, .45); letter-spacing: .03em; }
+.px-rank-me {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; margin-top: 14px; padding: 9px 12px; border-radius: 10px;
+  text-align: left; background: linear-gradient(90deg, rgba(255, 150, 60, .16), rgba(255, 150, 60, .04));
+  border: 1px solid rgba(255, 170, 90, .3);
+}
+.px-rank-me > div:first-child span { display: block; font-size: 9px; letter-spacing: .12em; color: rgba(255, 205, 160, .65); }
+.px-rank-me > div:first-child b { display: block; margin-top: 2px; font-size: 14px; color: #ffe3b0; }
+.px-rank-me-rank { text-align: right; white-space: nowrap; font-size: 11px; color: #ffce8f; }
+.px-rank-me-rank b { font-family: var(--font-mono); font-size: 19px; color: #ffd88a; }
+.px-rank-me-rank small { display: block; margin-top: 2px; font-size: 9.5px; color: rgba(245, 232, 220, .5); }
+.px-rank-tabs {
+  display: flex; gap: 3px; width: 100%; margin-top: 14px; padding: 3px;
+  border-radius: 9px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .07);
+}
+.px-rank-tabs button {
+  flex: 1; height: 26px; border: 0; border-radius: 6px; background: transparent;
+  color: rgba(245, 232, 220, .55); font-family: var(--font); font-size: 11px;
+  font-weight: 700; letter-spacing: .06em; cursor: pointer; transition: background .15s, color .15s;
+}
+.px-rank-tabs button:hover { color: #ffe3b0; }
+.px-rank-tabs button.on { background: rgba(255, 170, 80, .2); color: #ffd88a; box-shadow: inset 0 0 0 1px rgba(255, 180, 100, .28); }
+.px-rank-list {
+  display: flex; flex-direction: column; gap: 5px; width: 100%; margin-top: 10px;
+  max-height: 220px; overflow-y: auto; padding-right: 3px;
+  scrollbar-width: thin; scrollbar-color: rgba(255, 170, 90, .35) transparent;
+}
+.px-rank-list::-webkit-scrollbar { width: 5px; }
+.px-rank-list::-webkit-scrollbar-thumb { background: rgba(255, 170, 90, .35); border-radius: 4px; }
+.px-rank-row {
+  display: flex; align-items: center; gap: 9px; flex: none; padding: 6px 9px;
+  border-radius: 9px; text-align: left;
+  background: rgba(255, 255, 255, .045); border: 1px solid rgba(255, 255, 255, .06);
+}
+.px-rank-row.top { background: rgba(255, 170, 80, .09); border-color: rgba(255, 180, 100, .2); }
+.px-rank-row.me {
+  background: linear-gradient(90deg, rgba(255, 150, 50, .22), rgba(255, 150, 50, .06));
+  border-color: rgba(255, 190, 110, .55); box-shadow: 0 0 14px rgba(255, 140, 50, .14);
+}
+.px-rank-no { flex: none; width: 22px; text-align: center; font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: rgba(245, 232, 220, .5); }
+.px-rank-no.m1 { color: #ffd76a; font-size: 16px; }
+.px-rank-no.m2 { color: #d8e2ef; font-size: 16px; }
+.px-rank-no.m3 { color: #e8a878; font-size: 16px; }
+.px-avatar {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 8px; font-size: 12px; font-weight: 800;
+  background: linear-gradient(140deg, #ffb347, #e0522d); color: #2a1006;
+}
+.px-rank-row.top .px-avatar { box-shadow: 0 0 10px rgba(255, 170, 70, .4); }
+.px-rank-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.px-rank-who b { display: flex; align-items: center; gap: 5px; min-width: 0; font-size: 11.5px; font-weight: 700; color: #f8ead9; }
+.px-rank-nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.px-rank-who small { font-size: 9.5px; color: rgba(245, 232, 220, .48); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.px-tag { flex: none; display: inline-block; padding: 1px 4px; border-radius: 4px; font-size: 8.5px; font-style: normal; font-weight: 800; letter-spacing: .04em; }
+.px-tag.you { background: rgba(255, 180, 90, .25); color: #ffd88a; }
+.px-tag.demo { background: rgba(160, 150, 200, .18); color: #c9b9e8; }
+.px-rank-score { flex: none; font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: #ffd88a; text-shadow: 0 0 10px rgba(255, 140, 40, .35); }
+.px-rank-empty { width: 100%; margin-top: 12px; padding: 26px 10px; border-radius: 10px; border: 1px dashed rgba(255, 255, 255, .16); font-size: 11px; color: rgba(245, 232, 220, .5); }
+.px-rank-name { display: flex; gap: 7px; width: 100%; margin-top: 12px; }
+.px-name-input {
+  flex: 1; min-width: 0; height: 32px; padding: 0 10px; border-radius: 8px;
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 180, 100, .3);
+  color: #f8ead9; font-family: var(--font); font-size: 11.5px; outline: none;
+}
+.px-name-input:focus { border-color: #ffb347; box-shadow: 0 0 0 3px rgba(255, 160, 60, .14); }
+.px-name-input::placeholder { color: rgba(245, 232, 220, .35); }
+.px-rank-name .px-btn { flex: none; min-width: auto; height: 32px; margin-top: 0; padding: 0 12px; }
+.px-rank-hint { margin-top: 7px; font-size: 9.5px; line-height: 1.5; color: rgba(245, 232, 220, .4); }
+.px-btn.ghost.danger { color: #ffb3a7; border-color: rgba(255, 110, 90, .5); background: rgba(255, 80, 60, .14); }
+.px-ladder-line { margin-top: 12px; padding: 7px 12px; border-radius: 8px; background: rgba(255, 170, 80, .1); border: 1px solid rgba(255, 180, 100, .22); font-size: 11px; color: rgba(245, 232, 220, .75); }
+.px-ladder-line b { font-family: var(--font-mono); font-size: 14px; color: #ffd88a; }
+.px-ladder-line span { color: rgba(245, 232, 220, .5); }
+.px-ladder-line i { margin-left: 8px; font-style: normal; font-weight: 800; color: #ffce6a; }

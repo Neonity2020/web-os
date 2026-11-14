@@ -23,6 +23,108 @@
     bomb:   { c: '#c8a2ff', label: 'B', name: '涅槃' }
   };
 
+  /* ---------------- 天梯榜数据层 ----------------
+     纯静态站点没有账号与后端：以「玩家名」区分用户，成绩写入本机
+     localStorage。SEED 是常驻的本机基准成绩，只用于让榜单有参照，
+     在界面上标注「预置」，不与真实战绩混在一起。 */
+  const RUNS_KEY = 'phoenixScores';
+  const PLAYER_KEY = 'phoenixPlayer';
+  const MAX_RUNS = 120;
+  const SEED = [
+    { name: '赤焰', score: 26840, wave: 12, kills: 176, demo: true },
+    { name: '夜枭', score: 19120, wave: 10, kills: 132, demo: true },
+    { name: '星尘', score: 12460, wave: 8,  kills: 94,  demo: true },
+    { name: '白鸦', score: 7380,  wave: 6,  kills: 61,  demo: true },
+    { name: '雏凤', score: 3180,  wave: 3,  kills: 28,  demo: true }
+  ];
+  const cleanName = (s, fallback) => {
+    const t = String(s == null ? '' : s)
+      .replace(/[\u0000-\u001f\u007f]/g, '').trim().replace(/\s+/g, ' ').slice(0, 12);
+    return t || fallback || '玩家';
+  };
+  const fmtDate = (ts) => {
+    const d = new Date(ts);
+    return isNaN(d.getTime()) ? '' : (d.getMonth() + 1) + '/' + d.getDate() + ' ' + OS.pad(d.getHours()) + ':' + OS.pad(d.getMinutes());
+  };
+  const num = (v) => Number(v) || 0;
+  const scoreText = (v) => Math.max(0, Math.floor(num(v))).toLocaleString('zh-CN');
+  const timeKey = (e) => e.ts > 0 ? e.ts : Number.MAX_SAFE_INTEGER;
+
+  const Ladder = {
+    player() { return cleanName(OS.store.get(PLAYER_KEY, 'andi'), 'andi'); },
+    setPlayer(n) {
+      const v = cleanName(n, this.player());
+      OS.store.set(PLAYER_KEY, v);
+      return v;
+    },
+    /* 读取时逐条校验，避免手工改动 localStorage 后把脏数据带进界面 */
+    runs() {
+      const raw = OS.store.get(RUNS_KEY, []);
+      if (!Array.isArray(raw)) return [];
+      return raw.filter((r) => r && typeof r === 'object' && Number.isFinite(r.score) &&
+        r.score >= 0 && typeof r.name === 'string')
+        .map((r) => ({
+          name: cleanName(r.name, '玩家'),
+          score: Math.floor(r.score),
+          wave: Math.max(1, Math.floor(num(r.wave)) || 1),
+          kills: Math.max(0, Math.floor(num(r.kills))),
+          ts: Math.max(0, Math.floor(num(r.ts))),
+          demo: false
+        }));
+    },
+    all() { return SEED.concat(this.runs()); },
+    submit(run) {
+      const rec = {
+        name: cleanName(run.name, this.player()),
+        score: Math.max(0, Math.floor(num(run.score))),
+        wave: Math.max(1, Math.floor(num(run.wave)) || 1),
+        kills: Math.max(0, Math.floor(num(run.kills))),
+        ts: Date.now(),
+        demo: false
+      };
+      const list = this.runs();
+      list.push(rec);
+      list.sort((a, b) => b.score - a.score || a.ts - b.ts);
+      OS.store.set(RUNS_KEY, list.slice(0, MAX_RUNS));
+      return rec;
+    },
+    /* 每位玩家只取历史最高一局，得到「用户得分排名」 */
+    players() {
+      const counts = Object.create(null);
+      for (const r of this.runs()) counts[r.name] = (counts[r.name] || 0) + 1;
+      const map = new Map();
+      for (const r of this.all()) {
+        const key = (r.demo ? 'd:' : 'u:') + r.name;
+        const prev = map.get(key);
+        if (!prev || r.score > prev.score || (r.score === prev.score && timeKey(r) < timeKey(prev))) {
+          map.set(key, {
+            name: r.name, score: r.score, wave: r.wave, kills: r.kills,
+            ts: r.ts || 0, demo: !!r.demo, plays: r.demo ? 0 : (counts[r.name] || 1)
+          });
+        }
+      }
+      const list = Array.from(map.values());
+      list.sort((a, b) => b.score - a.score || timeKey(a) - timeKey(b) || a.name.localeCompare(b.name, 'zh'));
+      list.forEach((e, i) => { e.rank = i + 1; });
+      return list;
+    },
+    /* 单局榜：每一局都是一条记录 */
+    recent(limit) {
+      return this.runs().slice()
+        .sort((a, b) => b.score - a.score || b.ts - a.ts)
+        .slice(0, limit || 8)
+        .map((r, i) => Object.assign({}, r, { rank: i + 1 }));
+    },
+    rankOf(name) {
+      const list = this.players();
+      const i = list.findIndex((e) => !e.demo && e.name === name);
+      return i < 0
+        ? { rank: 0, total: list.length, best: 0 }
+        : { rank: i + 1, total: list.length, best: list[i].score };
+    },
+    clear() { OS.store.set(RUNS_KEY, []); }
+  };
+
   /* ---------------- WebAudio 合成音效 ---------------- */
   const Sfx = {
     ctx: null, noiseBuf: null, lastShot: 0,
@@ -113,6 +215,9 @@
         power: root.querySelector('[data-power]')
       };
       this.moveKeys = { up: 1, down: 1, left: 1, right: 1 };
+      this.boardTab = 'players';
+      this.boardResume = false;
+      this.confirmClear = false;
       this.scale = 1; this.H = 620; this.dpr = 1;
       this.resize();
       this.reset();
@@ -181,14 +286,14 @@
       const byCode = {
         ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
         KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Space: 'space',
-        KeyP: 'p', KeyR: 'r', KeyN: 'n', KeyM: 'm', KeyB: 'b', KeyH: 'h',
+        KeyP: 'p', KeyR: 'r', KeyN: 'n', KeyM: 'm', KeyB: 'b', KeyH: 'h', KeyL: 'l',
         Enter: 'enter', Escape: 'escape'
       };
       if (byCode[e.code]) return byCode[e.code];
       const byKey = {
         arrowup: 'up', arrowdown: 'down', arrowleft: 'left', arrowright: 'right',
         w: 'up', s: 'down', a: 'left', d: 'right', ' ': 'space',
-        p: 'p', r: 'r', n: 'n', m: 'm', b: 'b', h: 'h', enter: 'enter', escape: 'escape'
+        p: 'p', r: 'r', n: 'n', m: 'm', b: 'b', h: 'h', l: 'l', enter: 'enter', escape: 'escape'
       };
       return byKey[String(e.key || '').toLowerCase()] || null;
     }
@@ -212,6 +317,12 @@
     bind() {
       this.onDown = (e) => {
         if (!this.isActive()) return;
+        const t = e.target;
+        /* 玩家名输入框内：不吞按键，也不触发游戏快捷键 */
+        if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) {
+          if (e.key === 'Escape') { t.blur(); if (this.overlayMode === 'ranks') this.closeRanks(); }
+          return;
+        }
         const k = this.key(e);
         if (!k) return;
         if (this.moveKeys[k] || k === 'space') e.preventDefault();
@@ -221,8 +332,16 @@
         else if (k === 'r' || k === 'n') this.start();
         else if (k === 'm') OS.phoenix.toggleSound();
         else if (k === 'b' || k === 'space') this.bomb();
-        else if (k === 'h') this.showOverlay('help');
-        else if (k === 'enter' && this.mode !== 'running') this.primaryAction();
+        else if (k === 'h') this.openHelp();
+        else if (k === 'l') { if (this.overlayMode === 'ranks') this.closeRanks(); else this.openRanks(); }
+        else if (k === 'escape') {
+          if (this.overlayMode === 'ranks') this.closeRanks();
+          else if (this.overlayMode === 'help') this.back();
+        } else if (k === 'enter') {
+          if (this.overlayMode === 'ranks') this.closeRanks();
+          else if (this.overlayMode === 'help') this.back();
+          else if (this.mode !== 'running') this.primaryAction();
+        }
       };
       this.onUp = (e) => { const k = this.key(e); if (k) this.keys[k] = false; };
       window.addEventListener('keydown', this.onDown);
@@ -249,8 +368,22 @@
         const a = b.dataset.act;
         if (a === 'start' || a === 'restart') this.start();
         else if (a === 'resume') this.resume();
-        else if (a === 'help') { this.prevOverlay = this.overlayMode; this.showOverlay('help'); }
-        else if (a === 'back') this.showOverlay(this.prevOverlay || (this.mode === 'paused' ? 'paused' : 'ready'));
+        else if (a === 'ranks') this.openRanks();
+        else if (a === 'close-ranks') this.closeRanks();
+        else if (a === 'help') this.openHelp();
+        else if (a === 'back') this.back();
+        else if (a === 'tab') {
+          this.boardTab = b.dataset.tab === 'runs' ? 'runs' : 'players';
+          this.showOverlay('ranks');
+        } else if (a === 'save-name') this.savePlayerName();
+        else if (a === 'clear') this.clearScores();
+      });
+      this.overlay.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target && e.target.classList &&
+          e.target.classList.contains('px-name-input')) {
+          e.preventDefault();
+          this.savePlayerName();
+        }
       });
 
       if (window.ResizeObserver) {
@@ -277,6 +410,7 @@
       window.removeEventListener('resize', this.onResize);
       if (this.ro) this.ro.disconnect();
       clearTimeout(this.toastTimer);
+      clearTimeout(this.clearTimer);
       if (OS.phoenix.current === this) OS.phoenix.current = null;
       if (this.win._phoenix === this) this.win._phoenix = null;
     }
@@ -628,6 +762,10 @@
       this.mode = 'over';
       this.best = Math.max(this.best, this.score);
       OS.store.set('phoenixBest', this.best);
+      /* 得分大于 0 才算一局有效战绩，避免开局即坠机刷出 0 分记录 */
+      if (this.score > 0) {
+        Ladder.submit({ name: Ladder.player(), score: this.score, wave: this.wave, kills: this.kills });
+      }
       this.explode(this.player.x, this.player.y, '#ffd88a', 46);
       this.flash = 1; this.shake = 16;
       Sfx.over();
@@ -662,6 +800,8 @@
     start() {
       this.reset();
       this.mode = 'running';
+      this.boardResume = false;
+      this.confirmClear = false;
       this.hideOverlay();
       Sfx.start();
       this.syncTools();
@@ -683,6 +823,7 @@
     resume() {
       if (this.mode !== 'paused') return;
       this.mode = 'running';
+      this.boardResume = false;
       this.hideOverlay();
       this.syncTools();
     }
@@ -698,10 +839,102 @@
       else this.start();
     }
 
+    /* ---------- 天梯榜交互 ---------- */
+    prevKind() {
+      return this.overlayMode || (this.mode === 'over' ? 'over' : this.mode === 'paused' ? 'paused' : 'ready');
+    }
+
+    openRanks() {
+      if (this.overlayMode === 'ranks') return;
+      if (this.mode === 'running') {
+        /* 查看榜单时自动暂停，避免后台继续跑分 */
+        this.mode = 'paused';
+        this.pauseReason = '查看天梯榜，游戏已暂停';
+        this.keys = Object.create(null);
+        this.boardResume = true;
+        this.syncTools();
+      } else {
+        this.boardResume = false;
+      }
+      this.prevOverlay = this.prevKind();
+      this.showOverlay('ranks');
+    }
+
+    closeRanks() {
+      if (this.boardResume) { this.resume(); return; }
+      this.showOverlay(this.prevOverlay || this.prevKind());
+    }
+
+    openHelp() {
+      if (this.overlayMode === 'help') return;
+      this.prevOverlay = this.prevKind();
+      this.showOverlay('help');
+    }
+
+    back() { this.showOverlay(this.prevOverlay || this.prevKind()); }
+
+    savePlayerName() {
+      const input = this.overlay.querySelector('.px-name-input');
+      if (!input) return;
+      const name = Ladder.setPlayer(input.value);
+      this.showOverlay('ranks');
+      const next = this.overlay.querySelector('.px-name-input');
+      if (next) { next.focus(); next.setSelectionRange(next.value.length, next.value.length); }
+      this.toast('当前玩家 · ' + name);
+    }
+
+    clearScores() {
+      if (!this.confirmClear) {
+        this.confirmClear = true;
+        clearTimeout(this.clearTimer);
+        this.clearTimer = setTimeout(() => {
+          this.confirmClear = false;
+          if (this.overlayMode === 'ranks') this.showOverlay('ranks');
+        }, 6000);
+        this.showOverlay('ranks');
+        return;
+      }
+      Ladder.clear();
+      this.confirmClear = false;
+      clearTimeout(this.clearTimer);
+      this.showOverlay('ranks');
+      this.toast('本机战绩已清空');
+    }
+
+    rankHtml() {
+      const byRuns = this.boardTab === 'runs';
+      const list = byRuns ? Ladder.recent(8) : Ladder.players();
+      const me = Ladder.player();
+      if (!list.length) {
+        return '<div class="px-rank-empty">' +
+          (byRuns ? '还没有本机战绩，打一局就能上榜' : '暂无玩家成绩') + '</div>';
+      }
+      const medal = ['', '①', '②', '③'];
+      return '<div class="px-rank-list">' + list.map((e) => {
+        const isMe = !e.demo && e.name === me;
+        const sub = e.demo ? '本机预置基准'
+          : byRuns ? ('第 ' + e.wave + ' 波 · ' + e.kills + ' 击落 · ' + (fmtDate(e.ts) || '—'))
+            : ('第 ' + e.wave + ' 波 · ' + e.plays + ' 局 · ' + (fmtDate(e.ts) || '—'));
+        return '<div class="px-rank-row' + (isMe ? ' me' : '') + (e.rank <= 3 ? ' top' : '') + '">' +
+          '<span class="px-rank-no' + (e.rank <= 3 ? ' m' + e.rank : '') + '">' +
+            (e.rank <= 3 ? medal[e.rank] : e.rank) + '</span>' +
+          '<span class="px-avatar">' + OS.esc(e.name.slice(0, 1)) + '</span>' +
+          '<span class="px-rank-who"><b><span class="px-rank-nm">' + OS.esc(e.name) + '</span>' +
+            (isMe ? '<i class="px-tag you">你</i>' : '') +
+            (e.demo ? '<i class="px-tag demo">预置</i>' : '') +
+            '<small>' + sub + '</small></span>' +
+          '<span class="px-rank-score">' + scoreText(e.score) + '</span>' +
+        '</div>';
+      }).join('') + '</div>';
+    }
+
     showOverlay(kind) {
       this.overlayMode = kind;
       const best = OS.store.get('phoenixBest', 0) || 0;
+      const me = Ladder.player();
+      const rank = Ladder.rankOf(me);
       const keyRow = (k, v) => '<div class="px-krow"><kbd>' + k + '</kbd><span>' + v + '</span></div>';
+      const ladderBtn = '<button class="px-btn ghost" data-act="ranks">天梯榜 <span>L</span></button>';
       let html = '';
       if (kind === 'ready') {
         html =
@@ -712,10 +945,12 @@
           '<p class="px-desc">驾驶不死火鸟穿越弹幕，击落敌机与首领，<br>收集道具强化火力，刷新你的最高分。</p>' +
           '<div class="px-keys">' +
             keyRow('W A S D / ↑ ↓ ← →', '移动战机') + keyRow('自动', '持续开火') +
-            keyRow('空格 / B', '涅槃之火 · 清场') + keyRow('P / N / M / H', '暂停 / 新局 / 音效 / 帮助') +
+            keyRow('空格 / B', '涅槃之火 · 清场') + keyRow('P / N / M / L', '暂停 / 新局 / 音效 / 天梯榜') +
           '</div>' +
-          '<button class="px-btn" data-act="start">开始游戏 <span>⏎</span></button>' +
-          '<div class="px-best">历史最高分 <b>' + best + '</b></div>';
+          '<div class="px-btns"><button class="px-btn" data-act="start">开始游戏 <span>⏎</span></button>' +
+            ladderBtn + '</div>' +
+          '<div class="px-best">历史最高分 <b>' + scoreText(best) + '</b> · ' + OS.esc(me) +
+            (rank.rank ? ' · 天梯第 ' + rank.rank + ' 名' : ' · 暂未上榜') + '</div>';
       } else if (kind === 'paused') {
         html =
           '<div class="px-emblem small">' + OS.icon('phoenix') + '</div>' +
@@ -726,16 +961,51 @@
           '<div><span>剩余生命</span><b>' + this.lives + '</b></div></div>' +
           '<div class="px-btns"><button class="px-btn" data-act="resume">继续游戏 <span>P</span></button>' +
           '<button class="px-btn ghost" data-act="restart">重新开始</button>' +
-          '<button class="px-btn ghost" data-act="help">操作说明</button></div>';
+          '<button class="px-btn ghost" data-act="help">操作说明</button>' +
+          ladderBtn + '</div>';
       } else if (kind === 'over') {
         const record = this.score > this.startBest && this.score > 0;
         html =
           '<div class="px-emblem small dim">' + OS.icon('phoenix') + '</div>' +
           '<div class="px-kicker">GAME OVER</div><h1 class="px-title small">任务结束</h1>' +
           (record ? '<div class="px-record">✦ 新纪录 ✦</div>' : '') +
-          '<div class="px-final">' + this.score + '</div>' +
-          '<p class="px-desc">击落 ' + this.kills + ' 架敌机 · 抵达第 ' + this.wave + ' 波<br>历史最高分 ' + best + '</p>' +
-          '<button class="px-btn" data-act="restart">再来一局 <span>⏎</span></button>';
+          '<div class="px-final">' + scoreText(this.score) + '</div>' +
+          '<p class="px-desc">击落 ' + this.kills + ' 架敌机 · 抵达第 ' + this.wave + ' 波<br>历史最高分 ' + scoreText(best) + '</p>' +
+          '<div class="px-ladder-line">' +
+            (rank.rank
+              ? '本机天梯 <b>第 ' + rank.rank + ' 名</b><span> / ' + rank.total + ' 位玩家</span>' +
+                (rank.rank === 1 ? '<i>登顶</i>' : '')
+              : '得分后即可登上本机天梯') +
+          '</div>' +
+          '<div class="px-btns"><button class="px-btn" data-act="restart">再来一局 <span>⏎</span></button>' +
+            ladderBtn + '</div>';
+      } else if (kind === 'ranks') {
+        const byRuns = this.boardTab === 'runs';
+        html =
+          '<div class="px-kicker">LEADERBOARD · LOCAL</div>' +
+          '<h1 class="px-title small">天梯榜</h1>' +
+          '<p class="px-rank-note">按玩家最高分排名 · 成绩仅保存在本机浏览器</p>' +
+          '<div class="px-rank-me">' +
+            '<div><span>当前玩家</span><b>' + OS.esc(me) + '</b></div>' +
+            '<div class="px-rank-me-rank">' + (rank.rank ? '第 <b>' + rank.rank + '</b> 名' : '暂未上榜') +
+              '<small>' + (rank.rank ? '最高 ' + scoreText(rank.best) : '得分后即可上榜') + '</small></div>' +
+          '</div>' +
+          '<div class="px-rank-tabs">' +
+            '<button class="' + (byRuns ? '' : 'on') + '" data-act="tab" data-tab="players">玩家排名</button>' +
+            '<button class="' + (byRuns ? 'on' : '') + '" data-act="tab" data-tab="runs">单局战绩</button>' +
+          '</div>' +
+          this.rankHtml() +
+          '<div class="px-rank-name">' +
+            '<input class="px-name-input" type="text" maxlength="12" value="' + OS.esc(me) + '" ' +
+              'placeholder="玩家名（最多 12 字）" spellcheck="false" aria-label="玩家名">' +
+            '<button class="px-btn ghost" data-act="save-name">切换玩家</button>' +
+          '</div>' +
+          '<div class="px-rank-hint">输入不同名字即可新增玩家，输入已有名字可切换回去；各人成绩分别统计</div>' +
+          '<div class="px-btns">' +
+            '<button class="px-btn" data-act="close-ranks">返回 <span>Esc</span></button>' +
+            '<button class="px-btn ghost' + (this.confirmClear ? ' danger' : '') + '" data-act="clear">' +
+              (this.confirmClear ? '再点一次确认清空' : '清空本机战绩') + '</button>' +
+          '</div>';
       } else {
         html =
           '<div class="px-kicker">HOW TO PLAY</div><h1 class="px-title small">操作说明</h1>' +
@@ -744,19 +1014,23 @@
             keyRow('自动开火', '战机持续射击，无需按键') +
             keyRow('空格 / B', '释放「涅槃之火」，清除全部敌弹并重创敌机') +
             keyRow('P / N / R', '暂停 / 新游戏 / 重新开始') +
-            keyRow('M / H', '开关音效 / 打开本说明') +
+            keyRow('M / H / L', '音效 / 操作说明 / 天梯榜') +
           '</div>' +
           '<div class="px-legend">' +
             Object.keys(DROP).map((k) => '<span><i style="background:' + DROP[k].c + '">' + DROP[k].label + '</i>' + DROP[k].name + '</span>').join('') +
           '</div>' +
-          '<p class="px-desc">每 5 波出现首领；被击中会降低火力等级，护盾可抵挡一次伤害。</p>' +
+          '<p class="px-desc">每 5 波出现首领；被击中会降低火力等级。<br>每局得分自动计入天梯榜，按玩家名分别排名。</p>' +
           '<button class="px-btn" data-act="back">返回 <span>Esc</span></button>';
       }
-      this.overlay.innerHTML = '<div class="px-panel">' + html + '</div>';
+      this.overlay.innerHTML = '<div class="px-panel' + (kind === 'ranks' ? ' ranks' : '') + '">' + html + '</div>';
       this.overlay.classList.remove('hidden');
+      this.syncTools();
     }
 
-    hideOverlay() { this.overlay.classList.add('hidden'); }
+    hideOverlay() {
+      this.overlayMode = '';
+      this.overlay.classList.add('hidden');
+    }
 
     syncTools() {
       const t = this.win.toolsEl;
@@ -764,12 +1038,14 @@
       t.innerHTML =
         '<button class="tb-btn" data-px="pause" title="暂停 / 继续 (P)">' + OS.symbol(this.mode === 'running' ? 'pause' : 'play', 15) + '</button>' +
         '<button class="tb-btn" data-px="new" title="新游戏 (N)">' + OS.symbol('refresh', 15) + '</button>' +
+        '<button class="tb-btn' + (this.overlayMode === 'ranks' ? ' active' : '') + '" data-px="ranks" title="天梯榜 (L)">' + OS.symbol('trophy', 15) + '</button>' +
         '<button class="tb-btn' + (OS.phoenix.sound ? ' active' : '') + '" data-px="sound" title="音效 (M)">' + OS.symbol('volume', 15) + '</button>';
       t.querySelectorAll('[data-px]').forEach((b) => b.addEventListener('click', () => {
         const a = b.dataset.px;
         if (a === 'pause') this.togglePause();
         else if (a === 'new') this.start();
-        else OS.phoenix.toggleSound();
+        else if (a === 'ranks') { if (this.overlayMode === 'ranks') this.closeRanks(); else this.openRanks(); }
+        else if (a === 'sound') OS.phoenix.toggleSound();
       }));
     }
 
@@ -988,7 +1264,11 @@
     newGame() { if (this.current) this.current.start(); else OS.openApp('phoenix'); },
     togglePause() { if (this.current) this.current.togglePause(); else OS.openApp('phoenix'); },
     bomb() { if (this.current) this.current.bomb(); },
-    help() { if (this.current) this.current.showOverlay('help'); else OS.openApp('phoenix'); },
+    help() { if (this.current) this.current.openHelp(); else OS.openApp('phoenix'); },
+    leaderboard() {
+      if (this.current) this.current.openRanks();
+      else OS.openApp('phoenix', { ranks: true });
+    },
     toggleSound() {
       this.sound = !this.sound;
       OS.store.set('phoenixSound', this.sound);
@@ -1029,6 +1309,10 @@
       const game = new PhoenixGame(win, root);
       win._phoenix = game;
       OS.phoenix.current = game;
+      if (win.opts && win.opts.ranks) {
+        delete win.opts.ranks;
+        game.openRanks();
+      }
     }
   };
 })();
