@@ -419,7 +419,7 @@ html[data-theme="light"] .term-accent { color: #8a4bd1; }
 .px-rank-tabs button.on { background: rgba(255, 170, 80, .2); color: #ffd88a; box-shadow: inset 0 0 0 1px rgba(255, 180, 100, .28); }
 .px-rank-list {
   display: flex; flex-direction: column; gap: 5px; width: 100%; margin-top: 10px;
-  max-height: 220px; overflow-y: auto; padding-right: 3px;
+  max-height: 196px; overflow-y: auto; padding-right: 3px;
   scrollbar-width: thin; scrollbar-color: rgba(255, 170, 90, .35) transparent;
 }
 .px-rank-list::-webkit-scrollbar { width: 5px; }

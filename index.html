@@ -9,7 +9,7 @@
   <script>
     /* 托管环境不给静态资源设置 Cache-Control/ETag：主动核对版本，
        发现已发布新版本就换一个 URL 重载，清掉浏览器与边缘节点上的旧脚本。 */
-    window.WEBOS_BUILD = '20261113-19fd370d';
+    window.WEBOS_BUILD = '20261113-c4c2c5fc';
     (function () {
       if (/[?&]_wb=/.test(location.search)) return;
       try { if (sessionStorage.getItem('webos-build-check') === '1') return; } catch (e) { }
@@ -25,12 +25,12 @@
         .catch(function () { });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=20261113-19fd370d">
-  <link rel="stylesheet" href="css/desktop.css?v=20261113-19fd370d">
-  <link rel="stylesheet" href="css/windows.css?v=20261113-19fd370d">
-  <link rel="stylesheet" href="css/apps.css?v=20261113-19fd370d">
-  <link rel="stylesheet" href="css/office.css?v=20261113-19fd370d">
-  <link rel="stylesheet" href="css/scicalc.css?v=20261113-19fd370d">
+  <link rel="stylesheet" href="css/base.css?v=20261113-c4c2c5fc">
+  <link rel="stylesheet" href="css/desktop.css?v=20261113-c4c2c5fc">
+  <link rel="stylesheet" href="css/windows.css?v=20261113-c4c2c5fc">
+  <link rel="stylesheet" href="css/apps.css?v=20261113-c4c2c5fc">
+  <link rel="stylesheet" href="css/office.css?v=20261113-c4c2c5fc">
+  <link rel="stylesheet" href="css/scicalc.css?v=20261113-c4c2c5fc">
 </head>
 <body>
   <!-- 桌面壁纸 -->
@@ -70,13 +70,13 @@
     <div class="boot-hint">欢迎使用 WebOS</div>
   </div>
 
-  <script src="js/core.js?v=20261113-19fd370d"></script>
-  <script src="js/window-manager.js?v=20261113-19fd370d"></script>
-  <script src="js/apps.js?v=20261113-19fd370d"></script>
-  <script src="js/office.js?v=20261113-19fd370d"></script>
-  <script src="js/scicalc.js?v=20261113-19fd370d"></script>
-  <script src="js/phoenix.js?v=20261113-19fd370d"></script>
-  <script src="js/desktop.js?v=20261113-19fd370d"></script>
-  <script src="js/main.js?v=20261113-19fd370d"></script>
+  <script src="js/core.js?v=20261113-c4c2c5fc"></script>
+  <script src="js/window-manager.js?v=20261113-c4c2c5fc"></script>
+  <script src="js/apps.js?v=20261113-c4c2c5fc"></script>
+  <script src="js/office.js?v=20261113-c4c2c5fc"></script>
+  <script src="js/scicalc.js?v=20261113-c4c2c5fc"></script>
+  <script src="js/phoenix.js?v=20261113-c4c2c5fc"></script>
+  <script src="js/desktop.js?v=20261113-c4c2c5fc"></script>
+  <script src="js/main.js?v=20261113-c4c2c5fc"></script>
 </body>
 </html>

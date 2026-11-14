@@ -861,6 +861,13 @@
     }
 
     closeRanks() {
+      /* 游戏进行中直接收起浮层，避免出现「界面是开始页、后台还在跑分」 */
+      if (this.mode === 'running') {
+        this.boardResume = false;
+        this.hideOverlay();
+        this.syncTools();
+        return;
+      }
       if (this.boardResume) { this.resume(); return; }
       this.showOverlay(this.prevOverlay || this.prevKind());
     }
@@ -922,7 +929,7 @@
           '<span class="px-rank-who"><b><span class="px-rank-nm">' + OS.esc(e.name) + '</span>' +
             (isMe ? '<i class="px-tag you">你</i>' : '') +
             (e.demo ? '<i class="px-tag demo">预置</i>' : '') +
-            '<small>' + sub + '</small></span>' +
+            '</b><small>' + sub + '</small></span>' +
           '<span class="px-rank-score">' + scoreText(e.score) + '</span>' +
         '</div>';
       }).join('') + '</div>';
