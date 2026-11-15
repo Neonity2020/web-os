@@ -16,6 +16,9 @@
     OS.applyAccent();
     OS.renderWallpaper();
 
+    /* 门禁阶段曾隐藏开机层；登录通过后恢复开机动画 */
+    const bootLayer = document.getElementById('boot');
+    if (bootLayer) { bootLayer.style.display = ''; bootLayer.classList.remove('done'); }
     document.getElementById('boot-logo').innerHTML = OS.appleLogo(78, '#f5f5f7');
     OS.desktopInit();
 
@@ -37,6 +40,8 @@
       : '⌘/Ctrl + 空格 聚焦搜索 · F3 调度中心', 'about'), 4200);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+  /* 认证门禁：未登录只显示登录层，不初始化桌面 */
+  function launch() { OS.auth.start(boot); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', launch);
+  else launch();
 })();

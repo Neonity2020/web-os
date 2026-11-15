@@ -981,8 +981,12 @@
   V.settings = {
     render(win) {
       if (!win._set) win._set = { section: 'appearance' };
+      const who = OS.auth ? OS.auth.displayName() : 'andi';
+      const tag = (OS.auth && OS.auth.isGuest()) ? '访客模式 · 仅本机'
+        : (OS.auth && OS.auth.isAuthenticated()) ? 'WorkBuddy 云服务 · 已登录' : '本地账户';
       return '<div class="settings"><div class="sidebar settings-side">' +
-        '<div class="ss-user"><div class="ss-avatar">A</div><div><b>andi</b><span>Apple 账户 · 本地</span></div></div>' +
+        '<div class="ss-user"><div class="ss-avatar">' + OS.esc(who.slice(0, 1).toUpperCase()) + '</div>' +
+        '<div><b>' + OS.esc(who) + '</b><span>' + OS.esc(tag) + '</span></div></div>' +
         SECTIONS.map((s) => '<div class="side-item" data-sec="' + s.id + '">' + OS.symbol(s.icon, 16) + '<span>' + s.name + '</span></div>').join('') +
         '</div><div class="settings-content"></div></div>';
     },

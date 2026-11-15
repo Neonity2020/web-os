@@ -91,7 +91,13 @@
       { label: '关机…', icon: 'power', action: OS.shutdown },
       { label: '锁定屏幕', key: '⌃⌘Q', action: OS.lockScreen },
       { sep: true },
-      { label: '退出登录 andi…', action: OS.lockScreen }
+      { label: (OS.auth && OS.auth.isGuest()) ? '登录 / 注册账号…'
+          : '退出登录 ' + (OS.auth ? OS.auth.displayName() : 'andi') + '…',
+        action: () => {
+          if (!OS.auth) return;
+          if (OS.auth.isGuest()) OS.auth.showLogin();
+          else OS.auth.signOut();
+        } }
     ];
   }
   function appMenuItems() {
@@ -536,10 +542,15 @@
 
   /* ---------------- 锁屏 / 关机 ---------------- */
   OS.lockScreen = () => {
+    /* 登录门禁期间不允许装饰性锁屏覆盖登录层 */
+    if (OS.auth && OS.auth.isGated()) return;
     closeMenu(); closeContext(); OS.toggleSpotlight(false); OS.toggleLaunchpad(false); OS.toggleNotifications(false);
     const lk = document.getElementById('lockscreen');
+    const who = OS.auth ? OS.auth.displayName() : 'andi';
+    const guest = !!(OS.auth && OS.auth.isGuest());
     lk.innerHTML = '<div class="lk-time">' + OS.clockText() + '</div><div class="lk-date">' + OS.dateText() + '</div>' +
-      '<div class="lk-avatar">A</div><div class="lk-name">andi</div><div class="lk-hint">点按任意位置或按任意键以解锁</div>';
+      '<div class="lk-avatar">' + OS.esc(who.slice(0, 1).toUpperCase()) + '</div><div class="lk-name">' + OS.esc(who) + '</div>' +
+      '<div class="lk-hint">点按任意位置或按任意键以解锁' + (guest ? ' · 访客模式' : '') + '</div>';
     lk.classList.remove('hidden');
     const unlock = () => { lk.classList.add('hidden'); lk.removeEventListener('click', unlock); window.removeEventListener('keydown', unlock, true); };
     lk.addEventListener('click', unlock);
