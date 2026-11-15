@@ -25,10 +25,12 @@
     --m-dock-h: 68px;
     --m-safe-t: env(safe-area-inset-top, 0px);
     --m-safe-b: env(safe-area-inset-bottom, 0px);
-    --m-win-h: calc(100vh - var(--m-menu-h) - var(--m-dock-h) - var(--m-safe-t) - var(--m-safe-b));
+    /* JS 会用 visualViewport.height 覆盖；不支持时依次回退 dvh / vh。 */
+    --m-viewport-h: 100vh;
+    --m-win-h: calc(var(--m-viewport-h) - var(--m-menu-h) - var(--m-dock-h) - var(--m-safe-t) - var(--m-safe-b));
   }
   @supports (height: 100dvh) {
-    :root { --m-win-h: calc(100dvh - var(--m-menu-h) - var(--m-dock-h) - var(--m-safe-t) - var(--m-safe-b)); }
+    :root { --m-viewport-h: 100dvh; }
   }
 
   html, body { -webkit-touch-callout: none; overscroll-behavior: none; }
@@ -96,6 +98,9 @@
 
   /* ---------------- 窗口：全屏化，不再拖拽缩放 ---------------- */
   .windows-layer .window {
+    /* 消除 iOS Safari 的 300ms 点击延迟与双击缩放误判，应用内按钮即时响应；
+       标题栏 / 游戏画布自己的 touch-action:none 仍会覆盖，程序坞的 pan-x 不受影响。 */
+    touch-action: manipulation;
     left: 0 !important;
     top: calc(var(--m-menu-h) + var(--m-safe-t)) !important;
     width: 100vw !important;
@@ -104,7 +109,9 @@
     border-radius: 0 !important;
     border-left: 0; border-right: 0;
     box-shadow: none;
-    transition: box-shadow .2s, opacity .2s, transform .26s var(--ease);
+    /* 全屏窗口不需要桌面式缩放位移；按钮从第一帧起就固定在真实命中位置。 */
+    animation: none;
+    transition: box-shadow .2s, opacity .2s;
   }
   .window.maximized { border-radius: 0 !important; }
   .titlebar { height: 46px; padding: 0 10px; gap: 8px; touch-action: none; }
@@ -213,6 +220,10 @@
   .px-foot { display: none; }
   .px-overlay { padding: 12px; }
   .px-panel, .px-panel.ranks { max-width: 100%; }
+  /* 手机优先露出主操作，详细操作说明移到最后并可滑动查看。 */
+  .px-overlay[data-kind="ready"] .px-btns { order: 6; }
+  .px-overlay[data-kind="ready"] .px-best { order: 7; }
+  .px-overlay[data-kind="ready"] .px-keys { order: 8; }
   .px-emblem { width: 58px; height: 58px; }
   .px-emblem.small { width: 46px; height: 46px; }
   .px-title { font-size: 30px; }
@@ -274,6 +285,19 @@
   :root { --m-menu-h: 34px; --m-dock-h: 54px; }
   .titlebar { height: 38px; }
   .dock-item { width: 36px !important; height: 36px !important; }
+  /* 横屏计算器左右排布，避免五排按钮被压成 28px 的难点按细条。 */
+  .calculator { flex-direction: row; }
+  .calc-display { width: 30%; min-width: 126px; height: auto; padding: 12px; justify-content: center; }
+  .calc-keys { min-width: 0; height: 100%; }
+  .sc-keys { grid-template-rows: repeat(10, minmax(34px, 1fr)) !important; }
   .px-hud { height: 38px; }
   .px-emblem, .px-emblem.small { display: none; }
+  /* 横屏高度只有约 200px：保留标题与开始 / 榜单，说明文字不再挤走主按钮。 */
+  .px-overlay[data-kind="ready"] .px-kicker,
+  .px-overlay[data-kind="ready"] .px-sub,
+  .px-overlay[data-kind="ready"] .px-desc,
+  .px-overlay[data-kind="ready"] .px-keys,
+  .px-overlay[data-kind="ready"] .px-best { display: none; }
+  .px-overlay[data-kind="ready"] .px-title { margin-top: 0; font-size: 22px; }
+  .px-overlay[data-kind="ready"] .px-btns .px-btn { margin-top: 10px; }
 }

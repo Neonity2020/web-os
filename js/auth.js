@@ -305,6 +305,8 @@
           '<div class="auth-guest-note">不创建账号 · 数据仅保存在此浏览器 · 可随时登录</div>' +
         '</div>' +
         '<div class="auth-foot">首次验证将自动创建账号 · 无需设置密码</div>' +
+        '<div class="auth-build">版本 ' + OS.esc(String(window.WEBOS_BUILD || '未知')) +
+          ' · <button type="button" id="auth-refresh">检查更新</button></div>' +
         '<button type="button" id="auth-back" class="auth-back" style="display:none">返回桌面（不登录）</button>' +
       '</div>';
     OS.$$('[data-tab]', layer).forEach((b) => {
@@ -320,6 +322,10 @@
     });
     layer.querySelector('#auth-code').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitCode();
+    });
+    layer.querySelector('#auth-refresh').addEventListener('click', () => {
+      if (window.webosForceReload) window.webosForceReload();
+      else location.reload();
     });
     layer.querySelector('#auth-guest').addEventListener('click', enterGuest);
     layer.querySelector('#auth-back').addEventListener('click', enterGuest);

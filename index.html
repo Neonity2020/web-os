@@ -7,32 +7,70 @@
   <title>WebOS — 桌面</title>
   <meta http-equiv="Cache-Control" content="no-cache">
   <script>
-    /* 托管环境不给静态资源设置 Cache-Control/ETag：主动核对版本，
-       发现已发布新版本就换一个 URL 重载，清掉浏览器与边缘节点上的旧脚本。 */
-    window.WEBOS_BUILD = '20261114-de7b24aa';
+    /* 托管环境不给静态资源设置 Cache-Control/ETag，浏览器会启发式复用旧脚本。
+       每次加载都核对线上版本：旧实现用布尔保护位且带 _wb 的页面直接跳过，
+       导致同一标签会话里后续发布的新版永远拉不到，用户会一直卡在旧脚本上。 */
+    window.WEBOS_BUILD = '20261114-6980bae7';
     (function () {
-      if (/[?&]_wb=/.test(location.search)) return;
-      try { if (sessionStorage.getItem('webos-build-check') === '1') return; } catch (e) { }
-      fetch('version.json?_=' + Date.now(), { cache: 'no-store' })
+      var KEY = 'webos-build-check', TRIES = 'webos-build-reloads';
+      function get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+      function set(k, v) { try { sessionStorage.setItem(k, v); } catch (e) { } }
+      function del(k) { try { sessionStorage.removeItem(k); } catch (e) { } }
+      function rand() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+      function forceReload() {
+        del(KEY); del(TRIES);
+        var u = new URL(location.href);
+        u.searchParams.set('_wb', window.WEBOS_BUILD);
+        u.searchParams.set('_r', rand());
+        location.replace(u.toString());
+      }
+      window.webosForceReload = forceReload;
+      function banner(online) {
+        if (document.getElementById('webos-stale')) return;
+        var b = document.createElement('div');
+        b.id = 'webos-stale';
+        b.style.cssText = 'position:fixed;z-index:99999;left:8px;right:8px;top:8px;' +
+          'display:flex;align-items:center;gap:10px;justify-content:space-between;' +
+          'padding:10px 12px;border-radius:10px;background:#3a2a10;color:#ffe9b0;' +
+          'font:12px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.45)';
+        var span = document.createElement('span');
+        span.textContent = '检测到新版本 ' + online + '，当前页面仍是旧版，按钮可能无法响应。';
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.textContent = '立即刷新';
+        btn.style.cssText = 'flex:none;border:0;border-radius:7px;padding:6px 12px;' +
+          'background:#ffd75e;color:#241a00;font:12px/1.4 inherit;cursor:pointer';
+        btn.addEventListener('click', forceReload);
+        b.appendChild(span); b.appendChild(btn);
+        (document.body || document.documentElement).appendChild(b);
+      }
+      fetch('version.json?_=' + rand(), { cache: 'no-store' })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (v) {
-          if (!v || !v.build || v.build === window.WEBOS_BUILD) return;
-          try { sessionStorage.setItem('webos-build-check', '1'); } catch (e) { }
+          if (!v || !v.build) return;
+          document.documentElement.dataset.webosOnlineBuild = v.build;
+          if (v.build === window.WEBOS_BUILD) { del(TRIES); return; }
+          /* 记录的是「已针对哪个 build 重载」，换版本仍可再次重载；
+             同一 build 最多自动重载 2 次，避免边缘缓存顽固时死循环。 */
+          var last = get(KEY), tries = +get(TRIES) || 0;
+          if (last === v.build && tries >= 2) { banner(v.build); return; }
+          if (last !== v.build) tries = 0;
+          set(KEY, v.build); set(TRIES, String(tries + 1));
           var u = new URL(location.href);
           u.searchParams.set('_wb', v.build);
+          u.searchParams.set('_r', rand());
           location.replace(u.toString());
         })
         .catch(function () { });
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=20261114-de7b24aa">
-  <link rel="stylesheet" href="css/desktop.css?v=20261114-de7b24aa">
-  <link rel="stylesheet" href="css/windows.css?v=20261114-de7b24aa">
-  <link rel="stylesheet" href="css/apps.css?v=20261114-de7b24aa">
-  <link rel="stylesheet" href="css/office.css?v=20261114-de7b24aa">
-  <link rel="stylesheet" href="css/scicalc.css?v=20261114-de7b24aa">
-  <link rel="stylesheet" href="css/mobile.css?v=20261114-de7b24aa">
-  <link rel="stylesheet" href="css/auth.css?v=20261114-de7b24aa">
+  <link rel="stylesheet" href="css/base.css?v=20261114-6980bae7">
+  <link rel="stylesheet" href="css/desktop.css?v=20261114-6980bae7">
+  <link rel="stylesheet" href="css/windows.css?v=20261114-6980bae7">
+  <link rel="stylesheet" href="css/apps.css?v=20261114-6980bae7">
+  <link rel="stylesheet" href="css/office.css?v=20261114-6980bae7">
+  <link rel="stylesheet" href="css/scicalc.css?v=20261114-6980bae7">
+  <link rel="stylesheet" href="css/mobile.css?v=20261114-6980bae7">
+  <link rel="stylesheet" href="css/auth.css?v=20261114-6980bae7">
 </head>
 <body>
   <!-- 桌面壁纸 -->
@@ -72,16 +110,16 @@
     <div class="boot-hint">欢迎使用 WebOS</div>
   </div>
 
-  <script src="js/core.js?v=20261114-de7b24aa"></script>
-  <script src="js/window-manager.js?v=20261114-de7b24aa"></script>
-  <script src="js/apps.js?v=20261114-de7b24aa"></script>
-  <script src="js/office.js?v=20261114-de7b24aa"></script>
-  <script src="js/scicalc.js?v=20261114-de7b24aa"></script>
-  <script src="js/phoenix.js?v=20261114-de7b24aa"></script>
-  <script src="js/desktop.js?v=20261114-de7b24aa"></script>
-  <script src="js/cloud-config.js?v=20261114-de7b24aa"></script>
+  <script src="js/core.js?v=20261114-6980bae7"></script>
+  <script src="js/window-manager.js?v=20261114-6980bae7"></script>
+  <script src="js/apps.js?v=20261114-6980bae7"></script>
+  <script src="js/office.js?v=20261114-6980bae7"></script>
+  <script src="js/scicalc.js?v=20261114-6980bae7"></script>
+  <script src="js/phoenix.js?v=20261114-6980bae7"></script>
+  <script src="js/desktop.js?v=20261114-6980bae7"></script>
+  <script src="js/cloud-config.js?v=20261114-6980bae7"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tencent-ai/workbuddy-cloud-sdk@dev/lib/index.global.js"></script>
-  <script src="js/auth.js?v=20261114-de7b24aa"></script>
-  <script src="js/main.js?v=20261114-de7b24aa"></script>
+  <script src="js/auth.js?v=20261114-6980bae7"></script>
+  <script src="js/main.js?v=20261114-6980bae7"></script>
 </body>
 </html>

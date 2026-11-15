@@ -76,6 +76,11 @@
       { sep: true },
       { label: '系统设置…', icon: 'gear', action: () => OS.openApp('settings') },
       { label: 'App Store…', icon: 'star', action: () => OS.openApp('appstore') },
+      { title: '当前版本 ' + (window.WEBOS_BUILD || '未知') },
+      { label: '检查更新…', action: () => {
+        if (window.webosForceReload) window.webosForceReload();
+        else location.reload();
+      } },
       { title: '最近使用的项目' },
       { label: '访达', icon: 'folder', action: () => OS.openApp('finder') },
       { label: '终端', icon: 'terminal', action: () => OS.openApp('terminal') },
@@ -718,11 +723,25 @@
   }
 
   /* ---------------- 初始化 ---------------- */
+  function syncMobileViewport() {
+    /* iOS Safari / 内置 WebView 的 100vh 可能包含被工具栏遮住的区域。
+       visualViewport.height 才是用户当前真正能看见、能点中的高度。 */
+    const h = window.visualViewport && window.visualViewport.height
+      ? window.visualViewport.height : window.innerHeight;
+    if (h > 0) document.documentElement.style.setProperty('--m-viewport-h', Math.round(h) + 'px');
+  }
   OS.desktopInit = () => {
     renderMenubar();
     renderDock();
     renderDesktop();
     bindGlobal();
+    syncMobileViewport();
+    window.addEventListener('resize', syncMobileViewport, { passive: true });
+    window.addEventListener('orientationchange', () => setTimeout(syncMobileViewport, 250), { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', syncMobileViewport, { passive: true });
+      window.visualViewport.addEventListener('scroll', syncMobileViewport, { passive: true });
+    }
     setInterval(updateClock, 1000);
     setInterval(() => { if (new Date().getSeconds() === 0) renderWidgets(); }, 60000);
   };

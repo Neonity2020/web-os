@@ -937,6 +937,10 @@
 
     showOverlay(kind) {
       this.overlayMode = kind;
+      /* 供移动端按面板类型压缩/重排内容；切面板时回到顶部，
+         避免上一次滚动把「开始游戏」等主按钮留在可视区外。 */
+      this.overlay.dataset.kind = kind;
+      this.overlay.scrollTop = 0;
       const best = OS.store.get('phoenixBest', 0) || 0;
       const me = Ladder.player();
       const rank = Ladder.rankOf(me);

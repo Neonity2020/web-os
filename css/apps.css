@@ -47,7 +47,7 @@
   padding: 0 14px; border-bottom: 1px solid var(--win-sep); background: var(--win-fill);
 }
 .safari-url {
-  flex: 1; height: 28px; border-radius: 7px;
+  flex: 1; min-width: 0; height: 28px; border-radius: 7px;
   background: var(--field-bg); border: 1px solid var(--win-sep);
   display: flex; align-items: center; gap: 7px; padding: 0 10px;
   font-size: 11.5px; color: var(--win-muted);
@@ -324,8 +324,10 @@ html[data-theme="light"] .term-accent { color: #8a4bd1; }
 .px-life { display: block; width: 12px; height: 15px; background: linear-gradient(180deg, #fff0b8, #ff7a2b); clip-path: polygon(50% 0, 100% 58%, 78% 100%, 22% 100%, 0 58%); filter: drop-shadow(0 0 5px rgba(255, 120, 40, .7)); }
 .px-none { color: rgba(255, 255, 255, .35); }
 .px-bombs { font-size: 12px; font-weight: 700; color: #d5a9ff; white-space: nowrap; }
-.px-stage { flex: 1; min-height: 0; position: relative; overflow: hidden; background: #070914; cursor: crosshair; touch-action: none; }
-.px-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.px-stage { flex: 1; min-height: 0; position: relative; overflow: hidden; background: #070914; cursor: crosshair; touch-action: manipulation; }
+/* 只在真正操作画布时禁用手势；开始 / 暂停 / 榜单浮层必须允许纵向滚动，
+   否则矮屏手机的主按钮被裁出窗口后，用户无法把它滑回来。 */
+.px-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 .px-boss { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: min(62%, 340px); display: none; align-items: center; gap: 9px; z-index: 2; }
 .px-boss.on { display: flex; }
 .px-boss span { font-size: 9px; letter-spacing: .2em; font-weight: 800; color: #e9b6ff; }
@@ -340,13 +342,16 @@ html[data-theme="light"] .term-accent { color: #8a4bd1; }
 }
 .px-toast.on { opacity: 1; transform: translate(-50%, 0); }
 .px-overlay {
-  position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center;
+  position: absolute; inset: 0; z-index: 4; display: flex; align-items: flex-start; justify-content: center;
   padding: 18px; overflow: auto;
+  touch-action: pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   background: radial-gradient(80% 60% at 50% 30%, rgba(120, 40, 40, .35), transparent 70%), rgba(5, 6, 14, .84);
   backdrop-filter: blur(7px);
 }
 .px-overlay.hidden { display: none; }
-.px-panel { width: 100%; max-width: 380px; text-align: center; display: flex; flex-direction: column; align-items: center; animation: px-in .34s var(--ease) both; }
+/* auto margin 在空间足够时居中，空间不足时归零；避免 align-items:center
+   把超高面板的顶部和主按钮裁到滚动区之外。 */
+.px-panel { width: 100%; max-width: 380px; flex: none; margin: auto; text-align: center; display: flex; flex-direction: column; align-items: center; animation: px-in .34s var(--ease) both; }
 @keyframes px-in { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
 .px-emblem { width: 74px; height: 74px; filter: drop-shadow(0 8px 22px rgba(255, 110, 40, .55)); }
 .px-emblem svg { width: 100%; height: 100%; }

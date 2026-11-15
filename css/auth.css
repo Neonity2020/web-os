@@ -94,6 +94,13 @@
   font: inherit; font-size: 12px; cursor: pointer;
 }
 .auth-foot { margin-top: 14px; font-size: 10.5px; opacity: .42; }
+/* 版本可自查：用户一眼能确认手机拿到的是不是最新脚本 */
+.auth-build { margin-top: 8px; font-size: 10px; opacity: .38; }
+.auth-build button {
+  border: 0; background: none; padding: 0 2px; color: inherit;
+  font: inherit; text-decoration: underline; cursor: pointer; opacity: .85;
+}
+.auth-build button:hover { opacity: 1; }
 .auth-guest {
   margin-top: 14px; padding-top: 14px;
   border-top: 1px dashed rgba(255, 255, 255, .15);
