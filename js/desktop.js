@@ -584,13 +584,21 @@
   function bindGlobal() {
     /* 触屏长按 → 合成 contextmenu，复用桌面右键菜单逻辑。
        不依赖浏览器是否原生派发长按菜单；同时抑制长按后的误点击与重复事件。 */
-    let longPress = null, swallowClick = false, suppressNativeCtxUntil = 0;
+    let longPress = null, swallowClick = false, swallowAt = 0, suppressNativeCtxUntil = 0;
+    /* 原生交互控件与浮层上的「慢按」仍然是一次点击，不能当成长按手势。
+       移动端按压力度普遍偏长，若一律按 520ms 判长按，按钮的 click 会被吞掉，
+       表现为「进入应用后按钮都点不动」。桌面图标 / Dock / 访达文件项仍保留长按菜单。 */
+    const LP_SKIP = 'button, a[href], input, textarea, select, label, [contenteditable="true"], ' +
+      '[role="button"], [data-k], [data-px], .toolbar, .titlebar, .dropdown, .menubar, ' +
+      '.menu-layer, .context-menu, #lockscreen, #launchpad, #spotlight, ' +
+      '#notification-center, #mission-bar, #shutdown, #boot, .toast-stack, ' +
+      '.modal-card, .lightbox, .scrim';
     document.addEventListener('touchstart', (e) => {
       /* 新的一次手指按下即结束上一轮手势：长按的误点击抑制只吞掉它自己
          产生的那个合成 click，不能连带吞掉用户随后主动启动应用的点击。 */
       swallowClick = false;
       if (e.touches.length !== 1 ||
-        (e.target.closest && e.target.closest('input, textarea, [contenteditable="true"]'))) {
+        (e.target.closest && e.target.closest(LP_SKIP))) {
         longPress = null; return;
       }
       const t = e.touches[0];
@@ -600,6 +608,8 @@
         if (!lp) return;
         lp.fired = true;
         const el = document.elementFromPoint(lp.x, lp.y) || lp.target;
+        const cm = document.getElementById('context-menu');
+        const wasHidden = cm ? cm.classList.contains('hidden') : true;
         if (el && el.dispatchEvent) {
           const evt = new MouseEvent('contextmenu', {
             bubbles: true, cancelable: true, view: window,
@@ -608,7 +618,12 @@
           evt._wbLongPress = true;
           el.dispatchEvent(evt);
         }
-        swallowClick = true;
+        /* 只有本次长按确实唤出了上下文菜单，才吞掉它自己产生的合成 click。
+           按在普通按钮/内容区上却没有任何菜单时，慢按应当照常完成点击。 */
+        if (cm && wasHidden && !cm.classList.contains('hidden')) {
+          swallowClick = true;
+          swallowAt = Date.now();
+        }
         suppressNativeCtxUntil = Date.now() + 900;
         if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
       }, 520);
@@ -630,6 +645,9 @@
     document.addEventListener('click', (e) => {
       if (!swallowClick) return;
       swallowClick = false;
+      /* 兜底：抑制只对本次手势紧随其后的合成 click 生效，超时自动作废，
+         避免任何残留标志把后续的应用内点击全部吞掉。 */
+      if (Date.now() - swallowAt > 1200) return;
       if (e.target.closest && e.target.closest('#context-menu, .dropdown, .menubar')) return;
       e.preventDefault(); e.stopImmediatePropagation();
     }, true);
