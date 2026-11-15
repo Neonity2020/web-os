@@ -584,8 +584,11 @@
   function bindGlobal() {
     /* 触屏长按 → 合成 contextmenu，复用桌面右键菜单逻辑。
        不依赖浏览器是否原生派发长按菜单；同时抑制长按后的误点击与重复事件。 */
-    let longPress = null, suppressClickUntil = 0, suppressNativeCtxUntil = 0;
+    let longPress = null, swallowClick = false, suppressNativeCtxUntil = 0;
     document.addEventListener('touchstart', (e) => {
+      /* 新的一次手指按下即结束上一轮手势：长按的误点击抑制只吞掉它自己
+         产生的那个合成 click，不能连带吞掉用户随后主动启动应用的点击。 */
+      swallowClick = false;
       if (e.touches.length !== 1 ||
         (e.target.closest && e.target.closest('input, textarea, [contenteditable="true"]'))) {
         longPress = null; return;
@@ -605,7 +608,7 @@
           evt._wbLongPress = true;
           el.dispatchEvent(evt);
         }
-        suppressClickUntil = Date.now() + 800;
+        swallowClick = true;
         suppressNativeCtxUntil = Date.now() + 900;
         if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
       }, 520);
@@ -625,7 +628,8 @@
       if (Date.now() < suppressNativeCtxUntil) { e.preventDefault(); e.stopPropagation(); }
     }, true);
     document.addEventListener('click', (e) => {
-      if (Date.now() >= suppressClickUntil) return;
+      if (!swallowClick) return;
+      swallowClick = false;
       if (e.target.closest && e.target.closest('#context-menu, .dropdown, .menubar')) return;
       e.preventDefault(); e.stopImmediatePropagation();
     }, true);
